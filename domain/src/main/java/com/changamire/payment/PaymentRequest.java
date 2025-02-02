@@ -1,5 +1,7 @@
-package com.changamire;
+package com.changamire.payment;
 
+import com.changamire.enums.Currency;
+import com.changamire.enums.PaymentMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import io.swagger.v3.oas.annotations.media.Schema;

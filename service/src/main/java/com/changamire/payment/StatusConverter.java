@@ -1,5 +1,6 @@
-package com.changamire;
+package com.changamire.payment;
 
+import com.changamire.enums.Status;
 import org.springframework.stereotype.Component;
 
 @Component

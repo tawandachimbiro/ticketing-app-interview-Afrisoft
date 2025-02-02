@@ -1,5 +1,6 @@
-package com.changamire;
+package com.changamire.payment;
 
+import com.changamire.enums.Currency;
 import org.springframework.stereotype.Component;
 
 @Component

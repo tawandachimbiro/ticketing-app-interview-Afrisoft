@@ -1,4 +1,4 @@
-package com.changamire;
+package com.changamire.payment;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Random;

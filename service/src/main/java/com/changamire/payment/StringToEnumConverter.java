@@ -1,4 +1,4 @@
-package com.changamire;
+package com.changamire.payment;
 
 import org.springframework.core.convert.converter.Converter;
 

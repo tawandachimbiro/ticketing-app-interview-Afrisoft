@@ -1,5 +1,6 @@
-package com.changamire;
+package com.changamire.payment;
 
+import com.changamire.enums.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
