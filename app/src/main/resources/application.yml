@@ -1,0 +1,21 @@
+
+
+
+motapa:
+  api:
+    base-url: https://api.motapa.africa/v1
+    secret-key: pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl
+
+
+spring:
+  datasource:
+    url: jdbc:mariadb://localhost:3306/payment_api_integration
+    username: root
+    password: Amill2017
+    driver-class-name: org.mariadb.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+      format_sql: true
