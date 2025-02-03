@@ -21,10 +21,10 @@ public class SwaggerConfigurations {
         License mitLicense = new License().name("MIT License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
-                .title("API integration test")
+                .title("CBZ Ticketing system")
                 .version("1.0")
                 .contact(contact)
-                .description("API integration test").termsOfService("https://www.chimbiro.co.zw/#/")
+                .description("CBZ Ticketing system").termsOfService("https://www.chimbiro.co.zw/#/")
                 .license(mitLicense);
 
         return new OpenAPI().info(info);
