@@ -1,9 +1,5 @@
 package com.changamire.payment;
 
-import com.changamire.PaymentRequest;
-import com.changamire.PaymentResponse;
-import com.changamire.Transaction;
-import com.changamire.payment.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,23 +28,6 @@ public class PaymentController {
         return ResponseEntity.ok(paymentService.getTransactionByReference(reference));
     }
 
-//    @GetMapping
-//    public ResponseEntity<Page<Transaction>> getTransactionsByFilter(
-//            @RequestParam(required = false) Status status,
-//            @RequestParam(required = false) PaymentMethod paymentMethod,
-//            @RequestParam(required = false) Currency currency,
-//            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
-//
-//        if (status != null) {
-//            return ResponseEntity.ok(paymentService.getTransactionsByStatus(status, pageable));
-//        }
-//        if (paymentMethod != null) {
-//            return ResponseEntity.ok(paymentService.getTransactionsByPaymentMethod(paymentMethod, pageable));
-//        }
-//        if (currency != null) {
-//            return ResponseEntity.ok(paymentService.getTransactionsByCurrency(currency, pageable));
-//        }
-//        return ResponseEntity.badRequest().build();
-//    }
+
 
 }

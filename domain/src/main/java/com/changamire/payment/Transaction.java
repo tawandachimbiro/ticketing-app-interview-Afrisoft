@@ -1,4 +1,4 @@
-package com.changamire;
+package com.changamire.payment;
 
 
 import com.changamire.enums.Currency;
@@ -37,6 +37,10 @@ public class Transaction {
     @Column(name = "failure_url")
     private String failureUrl;
 
+    @Column(name = "hosted_url")
+    private String hostedUrl;
 
+    @Column(name = "checkout_id")
+    private String checkoutId;
 
 }

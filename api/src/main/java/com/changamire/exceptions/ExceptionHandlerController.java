@@ -18,4 +18,13 @@ public class ExceptionHandlerController {
         LOGGER.info("Record Not Found error: {}", e.getMessage());
         return Error.of(400, e.getMessage());
     }
+
+
+    @ExceptionHandler(PaymentProcessingException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody
+    Error paymentProcessing(PaymentProcessingException e) {
+        LOGGER.info("Payment processing error: {}", e.getMessage());
+        return Error.of(400, e.getMessage());
+    }
 }
