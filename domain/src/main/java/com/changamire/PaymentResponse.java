@@ -1,4 +1,4 @@
-package com.changamire.payment;
+package com.changamire;
 
 import com.changamire.enums.Status;
 import com.fasterxml.jackson.annotation.JsonProperty;

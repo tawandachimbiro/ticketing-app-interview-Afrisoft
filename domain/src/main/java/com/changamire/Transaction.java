@@ -1,4 +1,4 @@
-package com.changamire.payment;
+package com.changamire;
 
 
 import com.changamire.enums.Currency;

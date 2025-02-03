@@ -1,4 +1,4 @@
-package com.changamire.payment;
+package com.changamire;
 
 import com.changamire.enums.Currency;
 import com.changamire.enums.PaymentMethod;
@@ -16,7 +16,7 @@ import jakarta.validation.constraints.*;
 public class PaymentRequest {
     @NotNull(message = "Amount is required")
     @Positive(message = "Amount must be positive")
-    private Integer amount;
+    private Double  amount;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
