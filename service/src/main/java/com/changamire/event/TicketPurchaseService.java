@@ -1,6 +1,7 @@
 package com.changamire.event;
 
 import com.changamire.enums.PaymentMethod;
+import com.changamire.enums.TicketCategory;
 import com.changamire.exceptions.EventNotFoundException;
 import com.changamire.exceptions.PaymentProcessingException;
 import com.changamire.exceptions.TicketsSoldOutException;
@@ -16,39 +17,45 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TicketPurchaseService {
+
     private final EventRepository eventRepository;
     private final PaymentService paymentService;
     private final CardPaymentService cardPaymentService;
     private final EmailService emailService;
-
-
     private final TicketTypeRepository ticketTypeRepository;
 
     @Transactional
     public TicketPurchaseResponse purchaseTicket(TicketPurchaseRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-                .orElseThrow(() -> new EventNotFoundException ("Event not found"));
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
 
-        // Validate capacity before processing payment
-        if (event.getCapacity() < request.getQuantity()) {
-            throw new TicketsSoldOutException("Tickets are sold out");
+        // Calculate total tickets requested
+        int totalTickets = request.getTickets().stream()
+                .mapToInt(TicketTypeQuantity::getQuantity)
+                .sum();
+
+        // Validate capacity
+        if (event.getCapacity() < totalTickets) {
+            throw new TicketsSoldOutException("Not enough tickets available");
         }
 
-
         try {
-            Object paymentResponse = processPayment(event, request);
+            // Calculate total amount
+            double totalAmount = calculateTotalAmount(event, request.getTickets());
+
+            // Process payment with calculated amount
+            Object paymentResponse = processPayment(event, request, totalAmount);
 
             if (isPaymentSuccessful(paymentResponse)) {
                 List<TicketType> purchasedTickets = generateAndPersistTickets(event, request);
-                updateEventCapacity(event, request);
-                String ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse);
+                updateEventCapacity(event, totalTickets);
+                String ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
 
                 emailService.sendTicketConfirmation(
                         request.getCustomerEmail(),
@@ -70,11 +77,11 @@ public class TicketPurchaseService {
         }
     }
 
-    private Object processPayment(Event event, TicketPurchaseRequest request) {
+    private Object processPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
         if (isCardPayment(request.getPaymentMethod())) {
-            return processCardPayment(event, request);
+            return processCardPayment(event, request, totalAmount);
         } else {
-            return processMobileMoneyPayment(event, request);
+            return processMobileMoneyPayment(event, request, totalAmount);
         }
     }
 
@@ -82,18 +89,18 @@ public class TicketPurchaseService {
         return method == PaymentMethod.ZIMSWITCH || method == PaymentMethod.INTERNATIONAL_CARD;
     }
 
-    private CardPaymentResponse processCardPayment(Event event, TicketPurchaseRequest request) {
+    private CardPaymentResponse processCardPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
         CardPaymentRequest cardRequest = new CardPaymentRequest();
-        cardRequest.setAmount(calculateTotalAmount(event, request.getQuantity()));
+        cardRequest.setAmount(totalAmount);
         cardRequest.setEmail(request.getCustomerEmail());
         cardRequest.setCurrency(Currency.USD);
 
         return cardPaymentService.processCardPayment(cardRequest, request.getPaymentMethod());
     }
 
-    private PaymentResponse processMobileMoneyPayment(Event event, TicketPurchaseRequest request) {
+    private PaymentResponse processMobileMoneyPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
         PaymentRequest paymentRequest = new PaymentRequest();
-        paymentRequest.setAmount(calculateTotalAmount(event, request.getQuantity()));
+        paymentRequest.setAmount(totalAmount);
         paymentRequest.setEmail(request.getCustomerEmail());
         paymentRequest.setMobileMoneyNumber(request.getMobileNumber());
         paymentRequest.setPaymentMethod(request.getPaymentMethod());
@@ -104,23 +111,28 @@ public class TicketPurchaseService {
 
     private List<TicketType> generateAndPersistTickets(Event event, TicketPurchaseRequest request) {
         List<TicketType> tickets = new ArrayList<>();
-        TicketType baseType = event.getTicketTypes().stream()
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Event has no ticket types"));
 
-        for (int i = 0; i < request.getQuantity(); i++) {
-            TicketType ticket = new TicketType();
-            ticket.setCategory(baseType.getCategory());
-            ticket.setPrice(baseType.getPrice());
-            ticket.setEvent(event);
-            ticketTypeRepository.save(ticket);  // Persist each ticket
-            tickets.add(ticket);
-        }
+        request.getTickets().forEach(ticketRequest -> {
+            TicketType ticketType = event.getTicketTypes().stream()
+                    .filter(tt -> tt.getCategory() == ticketRequest.getCategory())
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalArgumentException("Ticket type not available: " + ticketRequest.getCategory()));
+
+            for (int i = 0; i < ticketRequest.getQuantity(); i++) {
+                TicketType ticket = new TicketType();
+                ticket.setCategory(ticketType.getCategory());
+                ticket.setPrice(ticketType.getPrice());
+                ticket.setEvent(event);
+                ticketTypeRepository.save(ticket);
+                tickets.add(ticket);
+            }
+        });
+
         return tickets;
     }
 
-    private void updateEventCapacity(Event event, TicketPurchaseRequest request) {
-        event.setCapacity(event.getCapacity() - request.getQuantity());
+    private void updateEventCapacity(Event event, int totalTickets) {
+        event.setCapacity(event.getCapacity() - totalTickets);
         eventRepository.save(event);
     }
 
@@ -135,72 +147,91 @@ public class TicketPurchaseService {
         return null;
     }
 
-    private Double calculateTotalAmount(Event event, Integer quantity) {
-        return event.getTicketTypes().stream()
-                .findFirst()
-                .map(t -> t.getPrice() * quantity)
-                .orElseThrow(() -> new IllegalStateException("Event has no ticket types"));
+    private Double calculateTotalAmount(Event event, List<TicketTypeQuantity> tickets) {
+        return tickets.stream()
+                .mapToDouble(tq -> {
+                    TicketType tt = event.getTicketTypes().stream()
+                            .filter(t -> t.getCategory() == tq.getCategory())
+                            .findFirst()
+                            .orElseThrow(() -> new IllegalStateException("Ticket type not found"));
+                    return tt.getPrice() * tq.getQuantity();
+                })
+                .sum();
     }
 
     private String generateTicketDetails(Event event,
                                          TicketPurchaseRequest request,
                                          List<TicketType> tickets,
-                                         Object paymentResponse) {
-        String ticketListHtml = tickets.stream()
-                .map(t -> String.format(
-                        "<li style='margin-bottom: 10px;'>" +
-                                "🎫 Ticket ID: <strong>%s</strong><br>" +
-                                "📌 Type: %s" +
-                                "</li>",
-                        t.getId(),
-                        t.getCategory().name()))
-                .collect(Collectors.joining());
+                                         Object paymentResponse,
+                                         double totalAmount) {
+        // Group tickets by category
+        Map<TicketCategory, List<TicketType>> ticketsByCategory = tickets.stream()
+                .collect(Collectors.groupingBy(TicketType::getCategory));
 
-        int quantity = request.getQuantity();
-        double totalAmount = calculateTotalAmount(event, quantity);
+        // Build ticket list HTML
+        StringBuilder ticketListHtml = new StringBuilder();
+        ticketsByCategory.forEach((category, ticketList) -> {
+            int quantity = ticketList.size();
+            double price = ticketList.get(0).getPrice();
+            double subtotal = price * quantity;
+
+            String ticketIds = ticketList.stream()
+                    .map(t -> String.format("<li style='margin-bottom: 5px;'>🎫 Ticket ID: <strong>%s</strong></li>", t.getId()))
+                    .collect(Collectors.joining());
+
+            ticketListHtml.append(String.format(
+                    "<div style='margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;'>" +
+                            "<h4 style='color: #2c3e50; margin-top: 0;'>%s Tickets</h4>" +
+                            "<p>Quantity: %d</p>" +
+                            "<p>Price per ticket: $%.2f</p>" +
+                            "<p>Subtotal: $%.2f</p>" +
+                            "<ul style='list-style: none; padding-left: 0; margin-top: 10px;'>%s</ul>" +
+                            "</div>",
+                    category, quantity, price, subtotal, ticketIds
+            ));
+        });
 
         return String.format(
                 loadEmailTemplate(),
-                event.getName(),                                  // 1. %s
-                event.getDateTime().format(                       // 2. %s
-                        DateTimeFormatter.ofPattern("EEE, MMM dd yyyy hh:mm a")),
-                event.getVenue(),                                 // 3. %s
-                event.getCity(),                                  // 4. %s
-                quantity,                                         // 5. %d
-                totalAmount,                                      // 6. %.2f
-                ticketListHtml                                    // 7. %s
+                event.getName(),
+                event.getDateTime().format(DateTimeFormatter.ofPattern("EEE, MMM dd yyyy hh:mm a")),
+                event.getVenue(),
+                event.getCity(),
+                tickets.size(),  // Total tickets
+                totalAmount,    // Total paid
+                ticketListHtml.toString()
         );
     }
 
     private String loadEmailTemplate() {
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("app/src/main/resources/templates/email/ticket-confirmation.html")) {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("app/templates/email/ticket-confirmation.html")) {
             if (is != null) {
                 return new String(is.readAllBytes(), StandardCharsets.UTF_8);
             } else {
                 throw new IOException("Template not found in resources");
             }
         } catch (IOException e) {
-            // Fallback template matching HTML structure
+            // Fallback template
             return """
                     <!DOCTYPE html>
                     <html>
                     <body>
-                        <h2>🎟️ Your Ticket Confirmation.</h2>
+                        <h2 style="color: #2c3e50;">🎟️ Your Ticket Confirmation </h2>
                         <p>Thank you for purchasing tickets for <strong>%s</strong>!</p>
                         
-                        <div style="border: 1px solid #e0e0e0; padding: 20px; margin: 20px 0;">
-                            <h3>Event Details</h3>
+                        <div style="border: 1px solid #e0e0e0; padding: 20px; margin: 20px 0; border-radius: 8px;">
+                            <h3 style="color: #2c3e50; margin-top: 0;">Event Overview</h3>
                             <p>📅 Date & Time: %s</p>
                             <p>📍 Venue: %s</p>
                             <p>🏙️ City: %s</p>
                             <p>🔢 Total Tickets: %d</p>
                             <p>💵 Total Paid: $%.2f</p>
                             
-                            <h3>Your Tickets</h3>
-                            <ul style="list-style: none; padding: 0;">
-                                %s
-                            </ul>
+                            <h3 style="color: #2c3e50;">Ticket Breakdown</h3>
+                            %s
                         </div>
+                        
+                        <p style="color: #7f8c8d; font-size: 0.9em;">Have a great experience at the event!</p>
                     </body>
                     </html>""";
         }

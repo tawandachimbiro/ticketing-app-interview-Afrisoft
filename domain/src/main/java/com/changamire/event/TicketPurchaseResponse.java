@@ -10,4 +10,6 @@ public class TicketPurchaseResponse {
     private String message;
     private String transactionId;
     private String ticketDetails;
+//    private Integer code;
+//    private String url;
 }
