@@ -1,22 +1,20 @@
 package com.changamire.event;
 
 import com.changamire.enums.PaymentMethod;
+import com.changamire.exceptions.EventNotFoundException;
 import com.changamire.exceptions.PaymentProcessingException;
+import com.changamire.exceptions.TicketsSoldOutException;
 import com.changamire.payment.*;
 import com.changamire.enums.Currency;
 import com.changamire.enums.Status;
 import com.changamire.ticket.TicketType;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,19 +27,20 @@ public class TicketPurchaseService {
     private final PaymentService paymentService;
     private final CardPaymentService cardPaymentService;
     private final EmailService emailService;
-    private final TransactionRepository transactionRepository;
+
 
     private final TicketTypeRepository ticketTypeRepository;
 
     @Transactional
     public TicketPurchaseResponse purchaseTicket(TicketPurchaseRequest request) {
         Event event = eventRepository.findById(request.getEventId())
-                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+                .orElseThrow(() -> new EventNotFoundException ("Event not found"));
 
         // Validate capacity before processing payment
         if (event.getCapacity() < request.getQuantity()) {
-            return new TicketPurchaseResponse(false, "Not enough available tickets", null, null);
+            throw new TicketsSoldOutException("Tickets are sold out");
         }
+
 
         try {
             Object paymentResponse = processPayment(event, request);
@@ -181,7 +180,7 @@ public class TicketPurchaseService {
                 throw new IOException("Template not found in resources");
             }
         } catch (IOException e) {
-            // Fallback template matching your HTML structure
+            // Fallback template matching HTML structure
             return """
                     <!DOCTYPE html>
                     <html>

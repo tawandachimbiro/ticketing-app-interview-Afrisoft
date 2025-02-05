@@ -1,5 +1,6 @@
 package com.changamire.event;
 
+import com.changamire.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +23,10 @@ public class EmailService {
             helper.setText(htmlContent, true); // true = isHTML
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setFrom("noreply@eventify.com");
+            helper.setFrom("replace this with a  @support email");
             mailSender.send(message);
         } catch (MessagingException e) {
-            throw new IllegalStateException("Failed to send email", e);
+            throw new EmailSendingException("Failed to send email to " + e);
         }
     }
 
