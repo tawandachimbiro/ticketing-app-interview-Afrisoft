@@ -31,6 +31,9 @@ public class Event {
     private String latitude;
     private String longitude;
     private Integer capacity;
+    private String description;
+    private String banner_url;
+    private String image_url;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
