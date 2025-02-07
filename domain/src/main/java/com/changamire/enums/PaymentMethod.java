@@ -7,6 +7,7 @@ public enum PaymentMethod {
     INNBUCKS("mobile_money", "innbucks"),
 
     // Card Payments
+
     ZIMSWITCH("card", "zimswitch"),
     INTERNATIONAL_CARD("card", "international");
 

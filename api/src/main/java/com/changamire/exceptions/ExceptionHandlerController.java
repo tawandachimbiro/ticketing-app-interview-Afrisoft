@@ -56,4 +56,14 @@ public class ExceptionHandlerController {
         LOGGER.info("Event Not Found Exception", e.getMessage());
         return Error.of(400, e.getMessage());
     }
+
+
+
+    @ExceptionHandler(ExternalServiceUnavailableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody
+    Error ExternalServiceUnavailableException(ExternalServiceUnavailableException e) {
+        LOGGER.info("External Service Unavailable Error", e.getMessage());
+        return Error.of(400, e.getMessage());
+    }
 }

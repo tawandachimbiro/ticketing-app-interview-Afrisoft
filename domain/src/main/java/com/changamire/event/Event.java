@@ -39,32 +39,5 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketType> ticketTypes = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<TicketType> ticketTypes = new ArrayList<>();
-
-
-
-//    endpoints pagiantion
-//            list all events
-//            filter by date /name /city/price /type /promotion
-//            load events in the db
-//    -----------------------------------------------------------------
-//    cart
-//    ----------------------------------------------------------------
-//    send ticket event after purchase
-//    sned email with tickit details
-//    ----------------------------------
-//    logic to pay for and event
-//
-
-
-//    public void addTicketType(TicketType ticketType) {
-//        ticketTypes.add(ticketType);
-//        ticketType.setEvent(this);
-//    }
-//
-//    public void removeTicketType(TicketType ticketType) {
-//        ticketTypes.remove(ticketType);
-//        ticketType.setEvent(null);
-//    }
+           //TO DO AND QR CODE FILED
 }

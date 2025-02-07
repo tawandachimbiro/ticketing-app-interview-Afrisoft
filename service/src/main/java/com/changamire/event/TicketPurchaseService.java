@@ -3,6 +3,7 @@ package com.changamire.event;
 import com.changamire.enums.PaymentMethod;
 import com.changamire.enums.TicketCategory;
 import com.changamire.exceptions.EventNotFoundException;
+import com.changamire.exceptions.ExternalServiceUnavailableException;
 import com.changamire.exceptions.PaymentProcessingException;
 import com.changamire.exceptions.TicketsSoldOutException;
 import com.changamire.payment.*;
@@ -86,7 +87,7 @@ public class TicketPurchaseService {
                     null
             );
 
-        } catch (PaymentProcessingException e) {
+        } catch (PaymentProcessingException | ExternalServiceUnavailableException e) {
             return new TicketPurchaseResponse(
                     false,
                     e.getMessage(),
