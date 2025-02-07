@@ -67,14 +67,57 @@ public class TicketPurchaseService {
                         true,
                         "Purchase successful",
                         getTransactionId(paymentResponse),
-                        ticketDetails
+                        ticketDetails,
+                        getCode(paymentResponse),          // New field
+                        request.getPaymentMethod(),        // From request
+                        getHostedUrl(paymentResponse),     // New field
+                        getCheckoutId(paymentResponse)     // New field
                 );
             }
-            return new TicketPurchaseResponse(false, "Payment failed", null, null);
+            // Update failure response with new fields
+            return new TicketPurchaseResponse(
+                    false,
+                    "Payment failed",
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
 
         } catch (PaymentProcessingException e) {
-            return new TicketPurchaseResponse(false, e.getMessage(), null, null);
+            return new TicketPurchaseResponse(
+                    false,
+                    e.getMessage(),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            );
         }
+    }
+
+
+    // Helper methods to extract new fields from payment response
+    private String getCode(Object response) {
+        if (response instanceof PaymentResponse pr) return pr.getCode();
+       // if (response instanceof CardPaymentResponse cpr) return cpr.getReference();
+        return null;
+    }
+
+    private String getHostedUrl(Object response) {
+       // if (response instanceof PaymentResponse pr) return pr.getHostedUrl();
+        if (response instanceof CardPaymentResponse cpr) return cpr.getHostedUrl();
+        return null;
+    }
+
+    private String getCheckoutId(Object response) {
+      //  if (response instanceof PaymentResponse pr) return pr.getCheckoutId();
+        if (response instanceof CardPaymentResponse cpr) return cpr.getCheckoutId();
+        return null;
     }
 
     private Object processPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
