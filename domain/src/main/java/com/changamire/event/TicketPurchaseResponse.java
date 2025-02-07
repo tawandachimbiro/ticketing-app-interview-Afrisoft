@@ -20,13 +20,3 @@ public class TicketPurchaseResponse {
     private String checkoutId;
 }
 
-//@Data
-//@AllArgsConstructor
-//public class TicketPurchaseResponse {
-//    private boolean success;
-//    private String message;
-//    private String transactionId;
-//    private String ticketDetails;
-////    private Integer code;
-////    private String url;
-//}

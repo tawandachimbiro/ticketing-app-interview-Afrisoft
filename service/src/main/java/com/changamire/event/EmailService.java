@@ -31,17 +31,4 @@ public class EmailService {
     }
 
 
-
-
-
-
-
-
-//    public void sendTicketConfirmation(String to, String subject, String content) {
-//        SimpleMailMessage message = new SimpleMailMessage();
-//        message.setTo(to);
-//        message.setSubject(subject);
-//        message.setText(content);
-//        mailSender.send(message);
-//    }
 }
