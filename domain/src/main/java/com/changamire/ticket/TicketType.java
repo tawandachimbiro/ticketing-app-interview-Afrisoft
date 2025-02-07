@@ -29,8 +29,6 @@ public class TicketType {
     @JoinColumn(name = "event_id")
     private Event event;
 
-//    @ManyToOne
-//    @JoinColumn(name = "event_id")
-//    private Event event;
+
 
 }

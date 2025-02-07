@@ -23,7 +23,7 @@ public class EmailService {
             helper.setText(htmlContent, true); // true = isHTML
             helper.setTo(to);
             helper.setSubject(subject);
-            helper.setFrom("replace this with a  @support email");
+            helper.setFrom("chimbirotawanda@gmail.com");
             mailSender.send(message);
         } catch (MessagingException e) {
             throw new EmailSendingException("Failed to send email to " + e);
