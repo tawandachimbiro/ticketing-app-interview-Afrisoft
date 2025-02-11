@@ -29,6 +29,11 @@ public class TicketType {
     @JoinColumn(name = "event_id")
     private Event event;
 
+    @Column(unique = true)
+    private String qrCodePath;
+
+    private boolean redeemed = false;
+
 
 
 }
