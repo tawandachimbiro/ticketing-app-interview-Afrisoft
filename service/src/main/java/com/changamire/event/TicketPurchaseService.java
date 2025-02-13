@@ -165,10 +165,10 @@ public class TicketPurchaseService {
                 try {
                     // Generate QR code after ticket has ID
                     String qrData = String.format(
-                            "{\"ticketId\":\"%s\",\"eventId\":\"%s\",\"type\":\"%s\"}",
-                            ticket.getId(),
-                            event.getId(),
-                            ticket.getCategory()
+                            "https://localhost:3000/verify-ticket?ticketId=%s&eventId=%d&type=%s",
+                            ticket.getId(),       // Ticket ID is now a String (alphanumeric)
+                            event.getId(),        // Event ID remains a Long
+                            ticket.getCategory()  // Enum value (e.g., "STANDARD")
                     );
                     String qrPath = qrCodeService.generateQRCode(qrData, 200, 200);
                     ticket.setQrCodePath(qrPath);
