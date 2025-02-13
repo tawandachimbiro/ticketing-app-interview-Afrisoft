@@ -38,7 +38,7 @@ public class TicketValidationController {
             JsonNode json = objectMapper.readTree(qrData);
             Long ticketId = json.get("ticketId").asLong();
 
-            TicketType ticket = ticketTypeRepository.findById(ticketId)
+            TicketType ticket = ticketTypeRepository.findById(String.valueOf(ticketId))
                     .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
             return ResponseEntity.ok(Map.of(
@@ -65,7 +65,7 @@ public class TicketValidationController {
             JSONObject json = new JSONObject(qrData);
             Long ticketId = json.getLong("ticketId");
 
-            TicketType ticket = ticketTypeRepository.findById(ticketId)
+            TicketType ticket = ticketTypeRepository.findById(String.valueOf(ticketId))
                     .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
             if(ticket.isRedeemed()) {

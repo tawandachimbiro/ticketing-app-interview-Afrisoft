@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 @Data
 @NoArgsConstructor
@@ -17,8 +18,11 @@ import lombok.NoArgsConstructor;
 public class TicketType {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GenericGenerator(name = "alphanumeric_id", strategy = "com.changamire.AlphaNumericIdGenerator") // Custom generator
+    @GeneratedValue(generator = "alphanumeric_id")
+    @Column(length = 12) // Ensure the column supports 12 characters
+    private String id;
+
     @Enumerated(EnumType.STRING)
     private TicketCategory category;
 

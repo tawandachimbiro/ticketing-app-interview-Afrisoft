@@ -165,7 +165,7 @@ public class TicketPurchaseService {
                 try {
                     // Generate QR code after ticket has ID
                     String qrData = String.format(
-                            "{\"ticketId\":%d,\"eventId\":%d,\"type\":\"%s\"}",
+                            "{\"ticketId\":\"%s\",\"eventId\":\"%s\",\"type\":\"%s\"}",
                             ticket.getId(),
                             event.getId(),
                             ticket.getCategory()
