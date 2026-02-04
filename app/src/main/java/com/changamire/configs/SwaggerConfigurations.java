@@ -16,15 +16,15 @@ public class SwaggerConfigurations {
         Contact contact = new Contact();
         contact.setEmail("developers@chimbiro.co.zw");
         contact.setName("Chimbiro Engineering Team");
-        contact.setUrl("https://www.afrosoft.co.zw/#/");
+        contact.setUrl("https://www.chimbiro.co.zw/#/");
 
         License mitLicense = new License().name("MIT License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
-                .title("CBZ Ticketing system")
+                .title("Afrisoft (interview) Ticketing system")
                 .version("1.0")
                 .contact(contact)
-                .description("CBZ Ticketing system").termsOfService("https://www.chimbiro.co.zw/#/")
+                .description("Afrisoft (interview) Ticketing system").termsOfService("https://www.chimbiro.co.zw/#/")
                 .license(mitLicense);
 
         return new OpenAPI().info(info);

@@ -1,8 +1,10 @@
 package com.changamire.event;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
@@ -50,5 +52,21 @@ public class EventController {
                 page, size);
 
         return ResponseEntity.ok(events);
+    }
+
+    // Create new event
+    @PostMapping
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventCreateRequest request) {
+        EventResponse response = eventService.createEvent(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    // Update existing event
+    @PutMapping("/{id}")
+    public ResponseEntity<EventResponse> updateEvent(
+            @PathVariable Long id,
+            @Valid @RequestBody EventUpdateRequest request) {
+        EventResponse response = eventService.updateEvent(id, request);
+        return ResponseEntity.ok(response);
     }
 }
