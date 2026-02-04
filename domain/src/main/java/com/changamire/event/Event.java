@@ -43,8 +43,16 @@ public class Event extends AbstractAuditingEntity {
     private String latitude;
     private String longitude;
     private Integer capacity;
+    
+    @Column(columnDefinition = "TEXT")
     private String description;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String banner_url;
+    
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
     private String image_url;
 
     @JsonManagedReference

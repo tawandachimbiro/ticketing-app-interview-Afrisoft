@@ -47,7 +47,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            .cors(AbstractHttpConfigurer::disable)
+            // CORS enabled - configured in CorsConfig.java
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - no authentication required
                 .requestMatchers("/api/auth/**").permitAll()
@@ -57,6 +57,9 @@ public class SecurityConfig {
                 
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
                 
                 // Protected endpoints - authentication required
                 .requestMatchers("/api/tickets/purchase").authenticated()
