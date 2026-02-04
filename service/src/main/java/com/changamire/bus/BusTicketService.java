@@ -12,6 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Bus Ticket Service
+ * 
+ * This service manages bus ticket operations including retrieving available schedules,
+ * creating bus tickets, checking seat availability, and managing bus routes and services.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 @RequiredArgsConstructor
 public class BusTicketService {

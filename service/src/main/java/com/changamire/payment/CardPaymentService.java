@@ -18,8 +18,17 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
+/**
+ * Card Payment Service
+ * 
+ * This service handles credit and debit card payment processing through external
+ * payment gateway integration. It supports both ZIMSWITCH and international card
+ * payments, providing hosted payment page URLs for secure card transactions.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 @RequiredArgsConstructor
 public class CardPaymentService {

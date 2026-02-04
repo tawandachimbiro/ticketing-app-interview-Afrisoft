@@ -10,6 +10,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Event Update Request DTO
+ * 
+ * This data transfer object contains optional fields for partially updating
+ * an existing event. All fields are nullable to support selective updates.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

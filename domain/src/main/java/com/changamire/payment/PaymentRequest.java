@@ -10,6 +10,16 @@ import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.*;
 
+/**
+ * Payment Request DTO
+ * 
+ * This data transfer object encapsulates mobile money payment request information
+ * including amount, customer details, mobile number, and callback URLs.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Getter
 @Setter
 @Data

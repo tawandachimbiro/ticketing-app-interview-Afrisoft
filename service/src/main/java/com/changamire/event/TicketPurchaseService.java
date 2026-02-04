@@ -21,6 +21,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Ticket Purchase Service
+ * 
+ * This service orchestrates the complete ticket purchase workflow including
+ * payment processing (mobile money and card), ticket generation with QR codes,
+ * email confirmation, and event capacity management.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 @RequiredArgsConstructor
 public class TicketPurchaseService {

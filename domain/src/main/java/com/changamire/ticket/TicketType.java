@@ -10,6 +10,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.GenericGenerator;
 
+/**
+ * Ticket Type Entity
+ * 
+ * This entity represents an individual purchased ticket with a unique
+ * alphanumeric ID, category (VIP, STANDARD, etc.), price, QR code path,
+ * and redemption status for event entry validation.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

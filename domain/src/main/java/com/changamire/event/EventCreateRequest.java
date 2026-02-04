@@ -10,6 +10,17 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Event Create Request DTO
+ * 
+ * This data transfer object encapsulates all required information for creating
+ * a new event including venue details, location, capacity, and ticket types.
+ * Includes validation constraints for data integrity.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

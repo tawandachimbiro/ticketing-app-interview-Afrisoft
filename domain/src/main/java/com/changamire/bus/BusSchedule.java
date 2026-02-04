@@ -9,6 +9,16 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Bus Schedule Entity
+ * <p>
+ * This entity represents a specific bus schedule for a route including
+ * travel date, departure/arrival times, and seat availability tracking.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

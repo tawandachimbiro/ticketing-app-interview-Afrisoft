@@ -10,7 +10,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-// TransactionRepository.java
+/**
+ * Transaction Repository
+ * 
+ * This repository handles payment transaction data access including lookups by
+ * reference, status, payment method, and currency. Supports paginated queries.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Optional<Transaction> findByReference(String reference);
 

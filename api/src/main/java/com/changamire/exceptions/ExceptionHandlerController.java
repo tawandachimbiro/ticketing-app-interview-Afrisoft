@@ -6,6 +6,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Global Exception Handler Controller
+ * <p>
+ * This controller provides centralized exception handling for the entire application.
+ * It catches and handles various custom exceptions, transforming them into appropriate
+ * HTTP responses with error details.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @ControllerAdvice(annotations = {RestController.class, Controller.class})
 public class ExceptionHandlerController {
 

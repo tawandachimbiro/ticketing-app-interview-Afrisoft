@@ -9,6 +9,17 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 
+/**
+ * Event Service
+ * 
+ * This service handles business logic for event management including creating,
+ * updating, retrieving, and filtering events. It provides comprehensive event
+ * search capabilities with multiple filter criteria.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 public class EventService {
 

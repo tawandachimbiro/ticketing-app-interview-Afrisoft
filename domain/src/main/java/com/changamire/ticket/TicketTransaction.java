@@ -12,6 +12,16 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+/**
+ * Ticket Transaction Entity
+ * 
+ * This entity represents a bus ticket purchase transaction including
+ * purchase date/time, total amount, customer, bus schedule, and payment details.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

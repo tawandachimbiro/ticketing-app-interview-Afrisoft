@@ -7,6 +7,16 @@ import io.swagger.v3.oas.models.info.License;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Swagger/OpenAPI Configuration
+ * <p>
+ * This configuration sets up Swagger/OpenAPI documentation for the ticketing system API.
+ * Provides API metadata including title, version, contact information, and license.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Configuration
 public class SwaggerConfigurations {
 
@@ -18,7 +28,7 @@ public class SwaggerConfigurations {
         contact.setName("Chimbiro Engineering Team");
         contact.setUrl("https://www.chimbiro.co.zw/#/");
 
-        License mitLicense = new License().name("MIT License").url("https://choosealicense.com/licenses/mit/");
+        License mitLicense = new License().name("License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
                 .title("Afrisoft (interview) Ticketing system")

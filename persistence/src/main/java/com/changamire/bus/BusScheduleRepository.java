@@ -9,6 +9,16 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Bus Schedule Repository
+ * 
+ * This repository manages bus schedules including travel dates, departure/arrival times,
+ * seat availability, and relationships with routes and services.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 public interface BusScheduleRepository extends JpaRepository<BusSchedule, Long> {
 
     // Custom query to fetch schedules with route and service

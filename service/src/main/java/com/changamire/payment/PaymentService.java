@@ -23,7 +23,17 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ * Payment Service
+ * 
+ * This service handles mobile money payment processing through external payment
+ * gateway integration. It manages transaction creation, status tracking, and
+ * error handling for payment operations.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 @RequiredArgsConstructor
 public class PaymentService {

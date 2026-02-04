@@ -12,6 +12,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Event Entity
+ * <p>
+ * This entity represents an event in the ticketing system including venue details,
+ * location information, capacity, and associated ticket types. Events can be
+ * concerts, sports events, conferences, or any ticketed gatherings.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

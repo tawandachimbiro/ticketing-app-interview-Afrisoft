@@ -1,6 +1,16 @@
 package com.changamire.enums;
 
-
+/**
+ * Payment Method Enum
+ * <p>
+ * This enum defines available payment methods in the ticketing system
+ * including mobile money (EcoCash, Innbucks) and card payments
+ * (ZIMSWITCH, international cards).
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 public enum PaymentMethod {
     // Mobile Money
     ECOCASH("mobile_money", "ecocash"),

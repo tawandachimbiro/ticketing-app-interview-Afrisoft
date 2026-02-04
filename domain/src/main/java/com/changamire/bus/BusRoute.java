@@ -10,6 +10,17 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Bus Route Entity
+ * <p>
+ * This entity represents a bus route between two towns including
+ * departure/destination information, ticket pricing, and associated
+ * schedules for the route.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

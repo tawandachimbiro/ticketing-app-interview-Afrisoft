@@ -12,6 +12,17 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+/**
+ * Transaction Entity
+ * 
+ * This entity represents a payment transaction in the system including
+ * transaction details, payment method, status, and associated URLs for
+ * payment processing and callbacks.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
