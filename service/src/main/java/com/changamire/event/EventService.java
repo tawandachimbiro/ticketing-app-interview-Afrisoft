@@ -1,6 +1,7 @@
 package com.changamire.event;
 
 import com.changamire.exceptions.EventNotFoundException;
+import com.changamire.ticket.TicketType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 /**
  * Event Service
@@ -53,6 +55,7 @@ public class EventService {
     }
 
     public EventResponse createEvent(EventCreateRequest request) {
+        // Create event without ticket types first
         var event = Event.builder()
                 .name(request.name())
                 .dateTime(request.dateTime())
@@ -67,8 +70,16 @@ public class EventService {
                 .description(request.description())
                 .banner_url(request.banner_url())
                 .image_url(request.image_url())
-                .ticketTypes(request.ticketTypes())
+                .ticketTypes(new ArrayList<>())
                 .build();
+
+        // Establish bidirectional relationship with ticket types
+        if (request.ticketTypes() != null && !request.ticketTypes().isEmpty()) {
+            for (TicketType ticketType : request.ticketTypes()) {
+                ticketType.setEvent(event);
+                event.getTicketTypes().add(ticketType);
+            }
+        }
 
         var savedEvent = eventRepository.save(event);
 
@@ -137,7 +148,14 @@ public class EventService {
             event.setImage_url(request.image_url());
         }
         if (request.ticketTypes() != null) {
-            event.setTicketTypes(request.ticketTypes());
+            // Clear existing ticket types
+            event.getTicketTypes().clear();
+            
+            // Add new ticket types with proper relationship
+            for (TicketType ticketType : request.ticketTypes()) {
+                ticketType.setEvent(event);
+                event.getTicketTypes().add(ticketType);
+            }
         }
 
         var updatedEvent = eventRepository.save(event);

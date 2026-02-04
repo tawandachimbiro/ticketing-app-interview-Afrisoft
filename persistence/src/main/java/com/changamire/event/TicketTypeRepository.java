@@ -13,5 +13,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @version 1.0.0
  * @since 2026-02-04
  */
-public interface TicketTypeRepository extends JpaRepository<TicketType, String> {
+public interface  TicketTypeRepository extends JpaRepository<TicketType, String> {
 }

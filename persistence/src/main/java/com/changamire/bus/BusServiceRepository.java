@@ -16,6 +16,6 @@ import java.util.Optional;
  * @since 2026-02-04
  */
 public interface BusServiceRepository extends JpaRepository<BusService, Long> {
-    Optional<BusService> findByName(String intercape);
+    Optional<BusService> findByName(String intercape );
 }
 

@@ -14,5 +14,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
  * @version 1.0.0
  * @since 2026-02-04
  */
-public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecificationExecutor<Event> {
+public interface EventRepository extends JpaRepository<Event, Long>,JpaSpecificationExecutor<Event> {
 }

@@ -21,7 +21,7 @@ import java.util.Optional;
  */
 public interface BusScheduleRepository extends JpaRepository<BusSchedule, Long> {
 
-    // Custom query to fetch schedules with route and service
+
     @Query("SELECT s FROM BusSchedule s JOIN FETCH s.busRoute r JOIN FETCH r.busService")
     List<BusSchedule> findAllWithRouteAndService();
 

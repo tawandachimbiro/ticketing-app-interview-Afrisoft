@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  * @version 1.0.0
  * @since 2026-02-04
  */
-public class EventSpecifications {
+public class EventSpecifications  {
 
     public static Specification<Event> hasName(String name) {
         return (root, query, criteriaBuilder) -> 

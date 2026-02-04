@@ -25,7 +25,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
     Page<Transaction> findAllByStatus(Status status, Pageable pageable);
 
-    Page<Transaction> findAllByPaymentMethod(PaymentMethod paymentMethod, Pageable pageable);
+    Page<Transaction>  findAllByPaymentMethod(PaymentMethod paymentMethod, Pageable pageable);
 
     Page<Transaction> findAllByCurrency(Currency currency, Pageable pageable);
 
