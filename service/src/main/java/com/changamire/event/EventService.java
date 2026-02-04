@@ -27,21 +27,22 @@ public class EventService {
     private EventRepository eventRepository;
 
     public Page<Event> getAllEvents(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        var pageable = PageRequest.of(page, size);
         return eventRepository.findAll(pageable);
     }
 
     public Event getEventById(Long id) {
-        return eventRepository.findById(id).orElse(null);
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
     }
 
     public Page<Event> getEventsByFilters(String name, String city, String type, String ispromotion,
                                           LocalDateTime startDate, LocalDateTime endDate,
                                           Double minPrice, Double maxPrice,
                                           int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        var pageable = PageRequest.of(page, size);
         
-        Specification<Event> spec = Specification.where(EventSpecifications.hasName(name))
+        var spec = Specification.where(EventSpecifications.hasName(name))
             .and(EventSpecifications.hasCity(city))
             .and(EventSpecifications.hasType(type))
             .and(EventSpecifications.hasPromotion(ispromotion))
@@ -52,24 +53,24 @@ public class EventService {
     }
 
     public EventResponse createEvent(EventCreateRequest request) {
-        Event event = Event.builder()
-                .name(request.getName())
-                .dateTime(request.getDateTime())
-                .venue(request.getVenue())
-                .address(request.getAddress())
-                .city(request.getCity())
-                .type(request.getType())
-                .ispromotion(request.getIspromotion())
-                .latitude(request.getLatitude())
-                .longitude(request.getLongitude())
-                .capacity(request.getCapacity())
-                .description(request.getDescription())
-                .banner_url(request.getBanner_url())
-                .image_url(request.getImage_url())
-                .ticketTypes(request.getTicketTypes())
+        var event = Event.builder()
+                .name(request.name())
+                .dateTime(request.dateTime())
+                .venue(request.venue())
+                .address(request.address())
+                .city(request.city())
+                .type(request.type())
+                .ispromotion(request.ispromotion())
+                .latitude(request.latitude())
+                .longitude(request.longitude())
+                .capacity(request.capacity())
+                .description(request.description())
+                .banner_url(request.banner_url())
+                .image_url(request.image_url())
+                .ticketTypes(request.ticketTypes())
                 .build();
 
-        Event savedEvent = eventRepository.save(event);
+        var savedEvent = eventRepository.save(event);
 
         return EventResponse.builder()
                 .id(savedEvent.getId())
@@ -96,50 +97,50 @@ public class EventService {
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
 
         // Update only provided fields (partial update)
-        if (request.getName() != null) {
-            event.setName(request.getName());
+        if (request.name() != null) {
+            event.setName(request.name());
         }
-        if (request.getDateTime() != null) {
-            event.setDateTime(request.getDateTime());
+        if (request.dateTime() != null) {
+            event.setDateTime(request.dateTime());
         }
-        if (request.getVenue() != null) {
-            event.setVenue(request.getVenue());
+        if (request.venue() != null) {
+            event.setVenue(request.venue());
         }
-        if (request.getAddress() != null) {
-            event.setAddress(request.getAddress());
+        if (request.address() != null) {
+            event.setAddress(request.address());
         }
-        if (request.getCity() != null) {
-            event.setCity(request.getCity());
+        if (request.city() != null) {
+            event.setCity(request.city());
         }
-        if (request.getType() != null) {
-            event.setType(request.getType());
+        if (request.type() != null) {
+            event.setType(request.type());
         }
-        if (request.getIspromotion() != null) {
-            event.setIspromotion(request.getIspromotion());
+        if (request.ispromotion() != null) {
+            event.setIspromotion(request.ispromotion());
         }
-        if (request.getLatitude() != null) {
-            event.setLatitude(request.getLatitude());
+        if (request.latitude() != null) {
+            event.setLatitude(request.latitude());
         }
-        if (request.getLongitude() != null) {
-            event.setLongitude(request.getLongitude());
+        if (request.longitude() != null) {
+            event.setLongitude(request.longitude());
         }
-        if (request.getCapacity() != null) {
-            event.setCapacity(request.getCapacity());
+        if (request.capacity() != null) {
+            event.setCapacity(request.capacity());
         }
-        if (request.getDescription() != null) {
-            event.setDescription(request.getDescription());
+        if (request.description() != null) {
+            event.setDescription(request.description());
         }
-        if (request.getBanner_url() != null) {
-            event.setBanner_url(request.getBanner_url());
+        if (request.banner_url() != null) {
+            event.setBanner_url(request.banner_url());
         }
-        if (request.getImage_url() != null) {
-            event.setImage_url(request.getImage_url());
+        if (request.image_url() != null) {
+            event.setImage_url(request.image_url());
         }
-        if (request.getTicketTypes() != null) {
-            event.setTicketTypes(request.getTicketTypes());
+        if (request.ticketTypes() != null) {
+            event.setTicketTypes(request.ticketTypes());
         }
 
-        Event updatedEvent = eventRepository.save(event);
+        var updatedEvent = eventRepository.save(event);
 
         return EventResponse.builder()
                 .id(updatedEvent.getId())

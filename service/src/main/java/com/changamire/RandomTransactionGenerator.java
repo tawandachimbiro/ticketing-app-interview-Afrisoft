@@ -5,7 +5,7 @@ import java.util.Random;
 
 /**
  * Random Transaction Generator Utility
- * 
+ * <p>
  * This utility class generates random 10-digit numeric strings for transaction
  * reference numbers used in payment processing.
  * 

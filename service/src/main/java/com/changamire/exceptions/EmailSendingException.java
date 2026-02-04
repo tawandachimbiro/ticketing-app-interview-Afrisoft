@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * Email Sending Exception
- * 
+ * <p>
  * This exception is thrown when email notification delivery fails,
  * such as ticket confirmation emails or receipts.
  * Returns HTTP 400 Bad Request status to the client.

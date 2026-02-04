@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Currency Converter
- * 
+ * <p>
  * This Spring converter component handles conversion of string values
  * to Currency enum constants for request parameter binding.
  * 

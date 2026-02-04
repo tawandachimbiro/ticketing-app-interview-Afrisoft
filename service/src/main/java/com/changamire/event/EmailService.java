@@ -44,9 +44,9 @@ public class EmailService {
             helper.setFrom("chimbirotawanda@gmail.com");
 
             // Add QR code images as embedded resources
-            List<String> imagePaths = extractImagePathsFromBody(htmlContent);
-            for (String path : imagePaths) {
-                FileSystemResource res = new FileSystemResource(new File(path));
+            var imagePaths = extractImagePathsFromBody(htmlContent);
+            for (var path : imagePaths) {
+                var res = new FileSystemResource(new File(path));
                 helper.addInline(path, res);
             }
 
@@ -57,9 +57,9 @@ public class EmailService {
     }
 
     private List<String> extractImagePathsFromBody(String body) {
-        List<String> paths = new ArrayList<>();
-        Pattern p = Pattern.compile("cid:(.*?)['\"]");
-        Matcher m = p.matcher(body);
+        var paths = new ArrayList<String>();
+        var p = Pattern.compile("cid:(.*?)['\"]");
+        var m = p.matcher(body);
         while (m.find()) {
             paths.add(m.group(1));
         }

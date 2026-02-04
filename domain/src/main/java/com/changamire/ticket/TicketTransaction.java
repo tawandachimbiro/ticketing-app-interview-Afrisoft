@@ -14,7 +14,7 @@ import java.time.LocalTime;
 
 /**
  * Ticket Transaction Entity
- * 
+ * <p>
  * This entity represents a bus ticket purchase transaction including
  * purchase date/time, total amount, customer, bus schedule, and payment details.
  * 

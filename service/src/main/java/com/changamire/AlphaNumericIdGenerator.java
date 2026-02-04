@@ -7,7 +7,7 @@ import java.security.SecureRandom;
 
 /**
  * Alphanumeric ID Generator
- * 
+ * <p>
  * This custom Hibernate ID generator creates secure alphanumeric identifiers
  * for tickets. Generates 12-character random IDs using uppercase letters and digits.
  * 

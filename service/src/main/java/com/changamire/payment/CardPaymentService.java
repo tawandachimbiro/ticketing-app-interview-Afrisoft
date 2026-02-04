@@ -36,12 +36,12 @@ public class CardPaymentService {
     private final TransactionRepository transactionRepository;
 
     public CardPaymentResponse processCardPayment(CardPaymentRequest request, PaymentMethod method) {
-        String transactionRef = "MOTAPAPAY-" + RandomTransactionGenerator.generateRandomNumbers();
+        var transactionRef = "MOTAPAPAY-" + RandomTransactionGenerator.generateRandomNumbers();
 
-        Map<String, Object> apiRequest = new HashMap<>();
-        apiRequest.put("amount", request.getAmount());
-        apiRequest.put("email", request.getEmail());
-        apiRequest.put("currency", request.getCurrency().name());
+        var apiRequest = new HashMap<String, Object>();
+        apiRequest.put("amount", request.amount());
+        apiRequest.put("email", request.email());
+        apiRequest.put("currency", request.currency().name());
         apiRequest.put("transaction_reference", transactionRef);
         apiRequest.put("payment_method_type", method.getType());
         apiRequest.put("payment_method_code", method.getCode());
@@ -54,16 +54,16 @@ public class CardPaymentService {
                     CardPaymentResponse.class
             );
 
-            Transaction transaction = Transaction.builder()
-                    .transactionId(response.getTransactionId())
+            var transaction = Transaction.builder()
+                    .transactionId(response.transactionId())
                     .reference(transactionRef)
                     .status(Status.PENDING)
-                    .amount(BigDecimal.valueOf(request.getAmount()))
-                    .currency(request.getCurrency())
-                    .email(request.getEmail())
+                    .amount(BigDecimal.valueOf(request.amount()))
+                    .currency(request.currency())
+                    .email(request.email())
                     .paymentMethod(method)
-                    .hostedUrl(response.getHostedUrl())
-                    .checkoutId(response.getCheckoutId())
+                    .hostedUrl(response.hostedUrl())
+                    .checkoutId(response.checkoutId())
                     .build();
 
             transactionRepository.save(transaction);
@@ -76,8 +76,8 @@ public class CardPaymentService {
     }
 
     private void handleConnectivityError(ResourceAccessException ex) {
-        Throwable rootCause = NestedExceptionUtils.getRootCause(ex);
-        String errorMessage = "Payment service is currently unavailable";
+        var rootCause = NestedExceptionUtils.getRootCause(ex);
+        var errorMessage = "Payment service is currently unavailable";
 
         if (rootCause instanceof UnknownHostException) {
             errorMessage = "Could not connect to payment service - check internet connection";

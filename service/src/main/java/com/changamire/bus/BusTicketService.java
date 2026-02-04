@@ -33,25 +33,25 @@ public class BusTicketService {
 
     // Get all bus tickets
     public List<BusTicketDTO> getAllBusTickets() {
-        List<BusSchedule> schedules = busScheduleRepository.findAllWithRouteAndService();
+        var schedules = busScheduleRepository.findAllWithRouteAndService();
         return schedules.stream()
                 .map(this::convertToDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // Create new bus ticket
     public BusTicketDTO createBusTicket(BusTicketDTO dto) {
-        String[] towns = validateAndSplitRoute(dto.getRoute());
-        BusService service = getOrCreateBusService(dto.getBusOperator());
-        BusRoute route = getOrCreateBusRoute(towns[0], towns[1], service, dto.getPrice());
-        BusSchedule schedule = createScheduleEntity(dto, route);
+        var towns = validateAndSplitRoute(dto.route());
+        var service = getOrCreateBusService(dto.busOperator());
+        var route = getOrCreateBusRoute(towns[0], towns[1], service, dto.price());
+        var schedule = createScheduleEntity(dto, route);
         busScheduleRepository.save(schedule);
         return convertToDTO(schedule);
     }
 
     // Seat availability check
     public boolean isSeatAvailable(String ticketId, int quantity) {
-        BusSchedule schedule = (BusSchedule) busScheduleRepository.findByTicketId(ticketId)
+        var schedule = (BusSchedule) busScheduleRepository.findByTicketId(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         return schedule.getAvailableSeats() >= quantity;
     }
@@ -80,11 +80,11 @@ public class BusTicketService {
     }
     private BusSchedule createScheduleEntity(BusTicketDTO dto, BusRoute route) {
         return BusSchedule.builder()
-                .ticketId(dto.getTicketId())
-                .travelDate(LocalDate.parse(dto.getTravelDate()))
-                .departureTime(parseTime(dto.getDepartureTime()))
-                .arrivalTime(parseTime(dto.getArrivalTime()))
-                .availableSeats(dto.getSeatAvailability())
+                .ticketId(dto.ticketId())
+                .travelDate(LocalDate.parse(dto.travelDate()))
+                .departureTime(parseTime(dto.departureTime()))
+                .arrivalTime(parseTime(dto.arrivalTime()))
+                .availableSeats(dto.seatAvailability())
                 .busRoute(route)
                 .build();
     }

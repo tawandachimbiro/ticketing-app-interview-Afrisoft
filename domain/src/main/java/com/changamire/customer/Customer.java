@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * Customer Entity
- * 
+ * <p>
  * This entity represents a customer who purchases tickets in the system.
  * Contains basic customer information including contact details.
  * 

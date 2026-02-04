@@ -12,7 +12,7 @@ import org.hibernate.annotations.GenericGenerator;
 
 /**
  * Ticket Type Entity
- * 
+ * <p>
  * This entity represents an individual purchased ticket with a unique
  * alphanumeric ID, category (VIP, STANDARD, etc.), price, QR code path,
  * and redemption status for event entry validation.

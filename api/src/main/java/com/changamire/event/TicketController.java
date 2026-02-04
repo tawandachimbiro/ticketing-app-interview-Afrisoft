@@ -32,7 +32,7 @@ public class TicketController {
     public ResponseEntity<TicketPurchaseResponse> purchaseTicket(
             @Valid @RequestBody TicketPurchaseRequest request
     ) {
-        TicketPurchaseResponse response = ticketPurchaseService.purchaseTicket(request);
-        return ResponseEntity.status(response.isSuccess() ? 200 : 400).body(response);
+        var response = ticketPurchaseService.purchaseTicket(request);
+        return ResponseEntity.status(response.success() ? 200 : 400).body(response);
     }
 }
