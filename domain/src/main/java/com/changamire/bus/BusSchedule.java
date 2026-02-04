@@ -1,5 +1,6 @@
 package com.changamire.bus;
 
+import com.changamire.base.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +25,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 @Entity
-public class BusSchedule {
+public class BusSchedule extends AbstractAuditingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

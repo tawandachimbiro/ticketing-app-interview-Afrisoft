@@ -1,5 +1,6 @@
 package com.changamire.event;
 
+import com.changamire.base.AbstractAuditingEntity;
 import com.changamire.ticket.TicketType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -28,7 +29,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Event {
+public class Event extends AbstractAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

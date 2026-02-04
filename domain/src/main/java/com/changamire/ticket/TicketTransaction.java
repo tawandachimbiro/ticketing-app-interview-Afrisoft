@@ -1,5 +1,6 @@
 package com.changamire.ticket;
 
+import com.changamire.base.AbstractAuditingEntity;
 import com.changamire.bus.BusSchedule;
 import com.changamire.customer.Customer;
 import jakarta.persistence.*;
@@ -27,7 +28,7 @@ import java.time.LocalTime;
 @AllArgsConstructor
 @Builder
 @Entity
-public class TicketTransaction {
+public class TicketTransaction extends AbstractAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

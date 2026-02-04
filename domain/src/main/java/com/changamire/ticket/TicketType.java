@@ -1,5 +1,6 @@
 package com.changamire.ticket;
 
+import com.changamire.base.AbstractAuditingEntity;
 import com.changamire.enums.TicketCategory;
 import com.changamire.event.Event;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -26,7 +27,7 @@ import org.hibernate.annotations.GenericGenerator;
 @AllArgsConstructor
 @Builder
 @Entity
-public class TicketType {
+public class TicketType extends AbstractAuditingEntity {
 
     @Id
     @GenericGenerator(name = "alphanumeric_id", strategy = "com.changamire.AlphaNumericIdGenerator") // Custom generator

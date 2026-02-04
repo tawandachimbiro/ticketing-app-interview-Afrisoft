@@ -1,5 +1,6 @@
 package com.changamire.bus;
 
+import com.changamire.base.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +24,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-public class BusService {
+public class BusService extends AbstractAuditingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

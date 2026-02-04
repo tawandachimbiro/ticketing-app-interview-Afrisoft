@@ -1,6 +1,7 @@
 package com.changamire.payment;
 
 
+import com.changamire.base.AbstractAuditingEntity;
 import com.changamire.enums.Currency;
 import com.changamire.enums.PaymentMethod;
 import com.changamire.enums.Status;
@@ -28,7 +29,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Transaction {
+public class Transaction extends AbstractAuditingEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
