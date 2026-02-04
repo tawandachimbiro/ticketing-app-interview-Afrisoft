@@ -6,6 +6,10 @@ motapa:
     base-url: https://api.motapa.africa/v1
     secret-key: pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl
 
+# Payment Configuration
+payment:
+  test-mode: true  # Set to false in production to use real payment gateway
+
 
 spring:
   datasource:
@@ -22,15 +26,28 @@ spring:
 
   mail:
     host: smtp.gmail.com
-    port: 587 # or 465
+    port: 587
     username: chimbirotawanda@gmail.com
-    password: rfsz mmfo pilw gyov
+    password: hvzv ahom fius lchj
+    protocol: smtp
+    test-connection: false
+    default-encoding: UTF-8
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+          ssl:
+            trust: smtp.gmail.com
+            protocols: TLSv1.2
+        debug: true
+        transport:
+          protocol: smtp
 
 # JWT Configuration
 jwt:

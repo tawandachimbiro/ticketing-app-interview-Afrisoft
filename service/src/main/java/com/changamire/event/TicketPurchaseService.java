@@ -65,15 +65,33 @@ public class TicketPurchaseService {
                 updateEventCapacity(event, totalTickets);
                 var ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
 
-                emailService.sendTicketConfirmation(
-                        request.customerEmail(),
-                        "Your Ticket Confirmation - " + event.getName(),
-                        ticketDetails
-                );
+                // Send confirmation email with detailed error handling
+                String emailStatus = "Email sent successfully";
+                try {
+                    System.out.println("=== ATTEMPTING TO SEND EMAIL ===");
+                    System.out.println("To: " + request.customerEmail());
+                    System.out.println("Subject: Your Ticket Confirmation - " + event.getName());
+                    
+                    emailService.sendTicketConfirmation(
+                            request.customerEmail(),
+                            "Your Ticket Confirmation - " + event.getName(),
+                            ticketDetails
+                    );
+                    
+                    System.out.println("✅ Email sent successfully to: " + request.customerEmail());
+                } catch (Exception emailException) {
+                    // Log detailed error information
+                    System.err.println("❌ ERROR: Failed to send confirmation email");
+                    System.err.println("Recipient: " + request.customerEmail());
+                    System.err.println("Error Type: " + emailException.getClass().getName());
+                    System.err.println("Error Message: " + emailException.getMessage());
+                    emailException.printStackTrace();
+                    emailStatus = "Purchase successful, but email could not be sent. Please contact support.";
+                }
 
                 return new TicketPurchaseResponse(
                         true,
-                        "Purchase successful",
+                        "Purchase successful! " + emailStatus,
                         getTransactionId(paymentResponse),
                         ticketDetails,
                         getCode(paymentResponse),

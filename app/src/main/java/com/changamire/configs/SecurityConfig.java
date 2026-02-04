@@ -51,9 +51,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints - no authentication required
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/test/**").permitAll()  // Test endpoints
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bus/**").permitAll()
+                
+                // Guest checkout - allow ticket purchase without login
+                .requestMatchers(HttpMethod.POST, "/api/tickets/purchase").permitAll()
                 
                 // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -62,7 +66,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
                 
                 // Protected endpoints - authentication required
-                .requestMatchers("/api/tickets/purchase").authenticated()
                 .requestMatchers("/api/payments/**").authenticated()
                 
                 // All other requests need authentication

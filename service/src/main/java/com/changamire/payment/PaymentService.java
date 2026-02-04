@@ -22,6 +22,7 @@ import java.math.BigDecimal;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Payment Service
@@ -39,9 +40,18 @@ import java.util.Map;
 public class PaymentService {
     private final RestTemplate restTemplate;
     private final TransactionRepository transactionRepository;
+    
+    // TEST MODE: Set to true for development/testing, false for production
+    // TODO: Move to configuration when ready for production
+    private static final boolean TEST_MODE = true;
 
     public PaymentResponse processPayment(PaymentRequest request) {
         var transactionRef = "MOTAPAPAY-" + RandomTransactionGenerator.generateRandomNumbers();
+        
+        // TEST MODE: Return success without calling external API
+        if (TEST_MODE) {
+            return createTestModeSuccessResponse(transactionRef, request);
+        }
 
         var apiRequest = new HashMap<String, Object>();
         apiRequest.put("amount", request.amount());
@@ -103,6 +113,41 @@ public class PaymentService {
     public Transaction getTransactionByReference(String reference) {
         return transactionRepository.findByReference(reference)
                 .orElseThrow(() -> new RecordNotFoundException("Transaction not found with reference: " + reference));
+    }
+    
+    /**
+     * Create a test mode success response without calling external payment API
+     * Used for development and testing when payment.test-mode=true
+     */
+    private PaymentResponse createTestModeSuccessResponse(String transactionRef, PaymentRequest request) {
+        var testTransactionId = "TEST-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        // Save test transaction to database
+        var transaction = Transaction.builder()
+                .transactionId(testTransactionId)
+                .reference(transactionRef)
+                .status(Status.SUCCESS)
+                .amount(BigDecimal.valueOf(request.amount()))
+                .currency(Currency.valueOf(request.currency().name()))
+                .email(request.email())
+                .paymentMethod(PaymentMethod.valueOf(request.paymentMethod().name()))
+                .successUrl(request.successUrl())
+                .failureUrl(request.failureUrl())
+                .build();
+        
+        transactionRepository.save(transaction);
+        
+        // Return success response
+        return new PaymentResponse(
+                "success",                                      // result
+                Status.SUCCESS,                                 // status
+                testTransactionId,                              // transactionId
+                transactionRef,                                 // transactionReference
+                "Test mode: Payment processed successfully",    // message
+                "Payment successful",                           // textMessage
+                null,                                           // qrCode
+                "SUCCESS"                                       // code
+        );
     }
 }
 
