@@ -31,3 +31,9 @@ spring:
           auth: true
           starttls:
             enable: true
+
+# JWT Configuration
+jwt:
+  secret: sxwj8RC6QZwmtwpHdHQ6nebcWqunsmY1H8q6sO02lNTfsuQOLeHcJmGir/A5Ll3SYon9YS6zfSOpBDcIyBQy1w==
+  expiration: 86400000 # 24 hours in milliseconds
+  refresh-expiration: 604800000 # 7 days in milliseconds

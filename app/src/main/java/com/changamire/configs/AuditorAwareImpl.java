@@ -1,6 +1,9 @@
 package com.changamire.configs;
 
 import org.springframework.data.domain.AuditorAware;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -8,9 +11,9 @@ import java.util.Optional;
 /**
  * Auditor Aware Implementation
  * 
- * Provides the current user for JPA auditing. Returns "system" as default
- * when no authenticated user is available. Can be enhanced with Spring
- * Security to return actual logged-in usernames.
+ * Provides the current authenticated user for JPA auditing. Integrates with
+ * Spring Security to extract the username from JWT token. Falls back to
+ * "system" when no authenticated user is available.
  * 
  * @author Archibold Chimbiro
  * @version 1.0.0
@@ -21,11 +24,11 @@ public class AuditorAwareImpl implements AuditorAware<String> {
 
     @Override
     public Optional<String> getCurrentAuditor() {
-        // TODO: Integrate with Spring Security when authentication is added
-        // Example: return Optional.ofNullable(SecurityContextHolder.getContext()
-        //                  .getAuthentication().getName());
-        
-        // For now, return "system" as default
-        return Optional.of("system");
+        return Optional.ofNullable(SecurityContextHolder.getContext())
+                .map(SecurityContext::getAuthentication)
+                .filter(Authentication::isAuthenticated)
+                .filter(auth -> !"anonymousUser".equals(auth.getPrincipal()))
+                .map(Authentication::getName)
+                .or(() -> Optional.of("system"));
     }
 }
