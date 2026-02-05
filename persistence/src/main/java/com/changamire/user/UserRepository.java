@@ -7,7 +7,7 @@ import java.util.Optional;
 
 /**
  * User Repository
- * 
+ * <p>
  * JPA repository for User entity operations. Provides CRUD operations
  * and custom query methods for user authentication and management.
  * 

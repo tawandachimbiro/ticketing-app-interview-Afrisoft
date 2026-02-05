@@ -1,7 +1,5 @@
 package com.changamire.bus;
 
-import com.changamire.bus.BusRoute;
-import com.changamire.bus.BusSchedule;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,7 +9,7 @@ import java.util.Optional;
 
 /**
  * Bus Schedule Repository
- * 
+ * <p>
  * This repository manages bus schedules including travel dates, departure/arrival times,
  * seat availability, and relationships with routes and services.
  * 

@@ -10,11 +10,11 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 /**
  * Bus Ticket Service
- * 
+ * <p>
  * This service manages bus ticket operations including retrieving available schedules,
  * creating bus tickets, checking seat availability, and managing bus routes and services.
  * 

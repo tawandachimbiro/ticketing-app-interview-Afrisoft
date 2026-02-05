@@ -15,7 +15,7 @@ import java.math.BigDecimal;
 
 /**
  * Transaction Entity
- * 
+ * <p>
  * This entity represents a payment transaction in the system including
  * transaction details, payment method, status, and associated URLs for
  * payment processing and callbacks.

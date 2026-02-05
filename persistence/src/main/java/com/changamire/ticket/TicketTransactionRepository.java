@@ -1,11 +1,11 @@
 package com.changamire.ticket;
 
-import com.changamire.ticket.TicketTransaction;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 /**
  * Ticket Transaction Repository
- * 
+ * <p>
  * This repository manages bus ticket purchase transactions including
  * customer information, payment details, and bus schedule associations.
  * 

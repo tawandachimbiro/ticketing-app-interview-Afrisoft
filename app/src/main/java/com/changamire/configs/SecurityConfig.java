@@ -22,7 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 /**
  * Security Configuration
- * 
+ * <p>
  * Configures Spring Security with JWT authentication. Sets up security filter chain,
  * authentication providers, password encoding, and endpoint authorization rules.
  * Uses stateless session management for REST API.
@@ -51,26 +51,17 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             // CORS enabled - configured in CorsConfig.java
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints - no authentication required
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/test/**").permitAll()  // Test endpoints
+                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bus/**").permitAll()
-                
-                // Guest checkout - allow ticket purchase without login
                 .requestMatchers(HttpMethod.POST, "/api/tickets/purchase").permitAll()
-                
-                // Admin-only endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
-                
-                // Protected endpoints - authentication required
                 .requestMatchers("/api/payments/**").authenticated()
-                
-                // All other requests need authentication
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

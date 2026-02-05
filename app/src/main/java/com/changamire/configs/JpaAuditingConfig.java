@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * JPA Auditing Configuration
- * 
+ * <p>
  * Enables JPA auditing to automatically populate audit fields
  * (createdBy, createdDate, lastModifiedBy, lastModifiedDate) in entities
  * that extend AbstractAuditingEntity.

@@ -5,7 +5,6 @@ spring:
     password: Amill2017
     driver-class-name: org.mariadb.jdbc.Driver
 
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -24,17 +23,16 @@ spring:
           starttls:
             enable: true
 
-
-motapa:
-  api:
-    base-url: https://api.motapa.africa/v1
-    secret-key: pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl
-
 server:
   port: 8099
 
 # JWT Configuration
 jwt:
   secret: vmfC0d1B62VB5QSratT4FTbSuS/pm0iYcDqAqIPZDI+gng7mFn8q/RKiK8KTZ/pYr3qHAaJ2ImAQ5E5d29jk/g==
-  expiration: 86400000 # 24 hours in milliseconds
+  expiration: 86400000       # 24 hours in milliseconds
   refresh-expiration: 604800000 # 7 days in milliseconds
+
+motapa:
+  api:
+    base-url: https://api.motapa.africa/v1
+    secret-key: pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl

@@ -3,7 +3,7 @@ package com.changamire.event;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,10 +25,10 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/events")
 @Tag(name = "Events", description = "Event management operations")
+@RequiredArgsConstructor
 public class EventController {
 
-    @Autowired
-    private EventService eventService;
+    private final EventService eventService;
 
     @Operation(summary = "Get all events", description = "Retrieve a paginated list of all events")
     @GetMapping

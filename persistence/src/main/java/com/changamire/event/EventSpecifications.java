@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 
 /**
  * Event Specifications
- * 
+ * <p>
  * This utility class provides JPA Specifications for dynamic event filtering
  * and querying. Used by EventRepository to build complex search criteria
  * for event searches by name, city, type, dates, and ticket prices.

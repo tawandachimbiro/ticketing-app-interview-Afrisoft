@@ -6,7 +6,7 @@ import lombok.Builder;
 
 /**
  * User Information DTO
- * 
+ * <p>
  * Data Transfer Object containing user profile information.
  * Used in authentication responses and user profile endpoints.
  * Excludes sensitive data like passwords.

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 /**
  * Authentication Controller
- * 
+ * <p>
  * REST controller for user authentication operations. Handles user signup,
  * login, and profile retrieval. Returns JWT tokens for successful authentication.
  * 

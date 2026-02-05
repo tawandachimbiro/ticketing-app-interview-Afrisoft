@@ -99,33 +99,4 @@ public class TicketValidationController {
     }
 
 
-//    @PostMapping("/redeem")
-//    public ResponseEntity<?> redeemTicket(@RequestBody String qrData) {
-//        try {
-//            JSONObject json = new JSONObject(qrData);
-//            Long ticketId = json.getLong("ticketId");
-//
-//            TicketType ticket = ticketTypeRepository.findById(ticketId)
-//                .orElseThrow(() -> new RuntimeException("Ticket not found"));
-//
-//            if(ticket.isRedeemed()) {
-//                return ResponseEntity.badRequest()
-//                    .body(Map.of("error", "Ticket already redeemed"));
-//            }
-//
-//            ticket.setRedeemed(true);
-//            ticketTypeRepository.save(ticket);
-//
-//            return ResponseEntity.ok(Map.of(
-//                "message", "Ticket redeemed successfully",
-//                "ticketId", ticket.getId()
-//            ));
-//
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-//                .body(Map.of("error", "Invalid QR Code"));
-//        }
-//    }
-
-
 }

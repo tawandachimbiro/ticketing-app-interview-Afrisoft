@@ -7,7 +7,7 @@ import java.util.List;
 
 /**
  * Ticket Type Repository
- * 
+ * <p>
  * This repository manages ticket type entities including purchased tickets,
  * QR codes, and redemption status. Uses alphanumeric String IDs.
  * 

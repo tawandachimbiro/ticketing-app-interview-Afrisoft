@@ -32,7 +32,7 @@ public class TicketType extends AbstractAuditingEntity {
     @Id
     @GenericGenerator(name = "alphanumeric_id", strategy = "com.changamire.AlphaNumericIdGenerator") // Custom generator
     @GeneratedValue(generator = "alphanumeric_id")
-    @Column(length = 12) // Ensure the column supports 12 characters
+    @Column(length = 12)
     private String id;
 
     @Enumerated(EnumType.STRING)

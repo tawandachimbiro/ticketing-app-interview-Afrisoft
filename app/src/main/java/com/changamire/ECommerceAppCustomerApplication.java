@@ -13,7 +13,7 @@ import java.util.concurrent.Executor;
  * <p>
  * This is the main Spring Boot application class for the Afrisoft ticketing system.
  * It handles event ticketing, payment processing, QR code generation, and customer management.
- *
+ * <p>
  * Async support is enabled to offload non-critical operations like email sending
  * to background threads, so the main HTTP request can return quickly.
  * 

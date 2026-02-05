@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * User Entity
- * 
+ * <p>
  * Represents a user in the ticketing system. Stores user credentials,
  * profile information, and authentication details. Extends AbstractAuditingEntity
  * to track user creation and modification.

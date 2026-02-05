@@ -1,13 +1,13 @@
 package com.changamire.bus;
 
-import com.changamire.bus.BusService;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 /**
  * Bus Service Repository
- * 
+ * <p>
  * This repository manages bus operator/service data including company names
  * and their associated routes.
  * 

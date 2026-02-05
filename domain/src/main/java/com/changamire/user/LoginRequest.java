@@ -6,7 +6,7 @@ import lombok.Builder;
 
 /**
  * Login Request DTO
- * 
+ * <p>
  * Data Transfer Object for user login/authentication requests.
  * Contains user credentials for authentication.
  * 

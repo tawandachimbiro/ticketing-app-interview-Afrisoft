@@ -10,7 +10,7 @@ import java.util.Optional;
 
 /**
  * Auditor Aware Implementation
- * 
+ * <p>
  * Provides the current authenticated user for JPA auditing. Integrates with
  * Spring Security to extract the username from JWT token. Falls back to
  * "system" when no authenticated user is available.

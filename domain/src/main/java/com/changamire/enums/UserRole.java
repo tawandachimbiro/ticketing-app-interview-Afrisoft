@@ -2,7 +2,7 @@ package com.changamire.enums;
 
 /**
  * User Role Enumeration
- * 
+ * <p>
  * Defines the different roles a user can have in the ticketing system.
  * Used for role-based access control and authorization.
  * 
@@ -13,10 +13,8 @@ package com.changamire.enums;
 public enum UserRole {
 
     CUSTOMER,
-    
 
     ADMIN,
-    
 
     OPERATOR
 }

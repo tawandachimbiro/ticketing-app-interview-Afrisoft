@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 /**
  * Email Service
- * 
+ * <p>
  * This service handles sending email notifications to customers, including
  * ticket confirmations with embedded QR codes. It supports HTML emails
  * with inline images and attachments.
@@ -35,7 +35,7 @@ public class EmailService {
 
     /**
      * Send ticket confirmation email asynchronously.
-     *
+     * <p>
      * This method runs in a separate thread so that ticket purchase
      * responses are not blocked by SMTP latency or failures.
      */

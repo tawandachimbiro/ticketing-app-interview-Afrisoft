@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /**
  * Event Repository
- *
+ * <p>
  * This repository provides data access operations for Event entities.
  * It supports standard CRUD operations and advanced filtering using JPA Specifications.
  * Soft-deleted events (deleted = true) are excluded from normal find operations.

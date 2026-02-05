@@ -12,7 +12,7 @@ import java.util.Optional;
 
 /**
  * Transaction Repository
- * 
+ * <p>
  * This repository handles payment transaction data access including lookups by
  * reference, status, payment method, and currency. Supports paginated queries.
  * 

@@ -8,7 +8,7 @@ import lombok.Builder;
 
 /**
  * Signup Request DTO
- * 
+ * <p>
  * Data Transfer Object for user registration/signup requests.
  * Contains validation rules for creating a new user account.
  * 

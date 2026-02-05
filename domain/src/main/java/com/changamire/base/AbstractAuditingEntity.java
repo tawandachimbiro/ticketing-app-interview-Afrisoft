@@ -15,14 +15,14 @@ import java.time.LocalDateTime;
 
 /**
  * Abstract Auditing Entity
- * 
+ * <p>
  * Base entity class for audit trail functionality. Automatically tracks:
  * - Who created the record (createdBy)
  * - When it was created (createdDate)
  * - Who last modified it (lastModifiedBy)
  * - When it was last modified (lastModifiedDate)
  * - Optimistic locking version
- * 
+ * <p>
  * All JPA entities requiring audit trails should extend this class.
  * 
  * @author Archibold Chimbiro

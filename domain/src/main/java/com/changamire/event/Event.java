@@ -55,11 +55,7 @@ public class Event extends AbstractAuditingEntity {
     @Column(columnDefinition = "LONGTEXT")
     private String image_url;
 
-    /**
-     * Soft delete flag and timestamp.
-     * When deleted is true, the event is considered removed from the system
-     * but remains in the database for audit/history.
-     */
+     // Soft delete flag and timestamp.
     @Column(nullable = false)
     private Boolean deleted = false;
 
@@ -69,5 +65,4 @@ public class Event extends AbstractAuditingEntity {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TicketType> ticketTypes = new ArrayList<>();
 
-           //TO DO AND QR CODE FILED
 }

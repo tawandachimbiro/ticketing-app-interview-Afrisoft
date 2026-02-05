@@ -1,13 +1,13 @@
 package com.changamire.customer;
 
-import com.changamire.customer.Customer;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 /**
  * Customer Repository
- * 
+ * <p>
  * This repository manages customer data including lookups by email address
  * for ticket purchase and customer management operations.
  * 

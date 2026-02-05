@@ -29,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Tickets", description = "Ticket purchase and management operations")
 public class TicketController {
+
     private final TicketPurchaseService ticketPurchaseService;
     private final TicketTypeRepository ticketTypeRepository;
     private final com.changamire.user.UserRepository userRepository;
@@ -45,8 +46,6 @@ public class TicketController {
     @Operation(summary = "Get current user's tickets", description = "Returns tickets purchased by the authenticated user")
     @GetMapping("/my")
     public ResponseEntity<List<MyTicketResponse>> getMyTickets(Authentication authentication) {
-        // authentication.getName() returns the username. We need the user's email,
-        // because tickets are stored against customerEmail.
         String username = authentication.getName();
         var user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));

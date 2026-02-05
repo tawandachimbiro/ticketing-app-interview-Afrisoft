@@ -48,7 +48,7 @@ public class ExceptionHandlerController {
         return Error.of(400, e.getMessage());
     }
 
-    //EmailSendingException
+
 
     @ExceptionHandler(EmailSendingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -58,13 +58,13 @@ public class ExceptionHandlerController {
         return Error.of(400, e.getMessage());
     }
 
-    //EventNotFoundException
+
 
     @ExceptionHandler(EventNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody
     Error EventNotFoundException(EventNotFoundException e) {
-        LOGGER.info("Event Not Found Exception", e.getMessage());
+        LOGGER.info("Event Not Found Exception : {}", e.getMessage());
         return Error.of(400, e.getMessage());
     }
 
@@ -74,7 +74,7 @@ public class ExceptionHandlerController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody
     Error ExternalServiceUnavailableException(ExternalServiceUnavailableException e) {
-        LOGGER.info("External Service Unavailable Error", e.getMessage());
+        LOGGER.info("External Service Unavailable Error : {}", e.getMessage());
         return Error.of(400, e.getMessage());
     }
 }

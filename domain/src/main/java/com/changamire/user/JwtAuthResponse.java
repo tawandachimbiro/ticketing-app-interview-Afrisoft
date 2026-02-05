@@ -5,7 +5,7 @@ import lombok.Builder;
 
 /**
  * JWT Authentication Response DTO
- * 
+ * <p>
  * Data Transfer Object for authentication responses containing JWT tokens.
  * Returned after successful signup or login operations.
  * 
