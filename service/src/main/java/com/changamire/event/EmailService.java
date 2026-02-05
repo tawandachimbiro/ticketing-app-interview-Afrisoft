@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -32,7 +33,16 @@ public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    /**
+     * Send ticket confirmation email asynchronously.
+     *
+     * This method runs in a separate thread so that ticket purchase
+     * responses are not blocked by SMTP latency or failures.
+     */
+    @Async("emailTaskExecutor")
     public void sendTicketConfirmation(String to, String subject, String htmlContent) {
+        System.out.println("📧 [ASYNC EMAIL] Queued email to: " + to + " with subject: " + subject);
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
 
@@ -51,7 +61,11 @@ public class EmailService {
             }
 
             mailSender.send(message);
+            System.out.println("✅ [ASYNC EMAIL] Sent successfully to: " + to);
         } catch (MessagingException e) {
+            // Log and wrap in custom exception for visibility; this runs in background thread
+            System.err.println("❌ [ASYNC EMAIL] Failed to send email to: " + to);
+            System.err.println("Reason: " + e.getMessage());
             throw new EmailSendingException("Failed to send email: " + e.getMessage());
         }
     }
@@ -69,41 +83,6 @@ public class EmailService {
 
 
 
-//package com.changamire.event;
-//
-//import com.changamire.exceptions.EmailSendingException;
-//import jakarta.mail.MessagingException;
-//import jakarta.mail.internet.MimeMessage;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.mail.SimpleMailMessage;
-//import org.springframework.mail.javamail.JavaMailSender;
-//import org.springframework.mail.javamail.MimeMessageHelper;
-//import org.springframework.stereotype.Service;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class EmailService {
-//
-//    private final JavaMailSender mailSender;
-//
-//    public void sendTicketConfirmation(String to, String subject, String htmlContent) {
-//        MimeMessage message = mailSender.createMimeMessage();
-//        MimeMessageHelper helper = new MimeMessageHelper(message, "utf-8");
-//
-//        try {
-//            helper.setText(htmlContent, true); // true = isHTML
-//            helper.setTo(to);
-//            helper.setSubject(subject);
-//            helper.setFrom("chimbirotawanda@gmail.com");
-//            mailSender.send(message);
-//        } catch (MessagingException e) {
-//            throw new EmailSendingException("Failed to send email to " + e);
-//        }
-//    }
-//
-//
-//}
-//
 
 
 

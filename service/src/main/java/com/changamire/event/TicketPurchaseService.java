@@ -65,33 +65,22 @@ public class TicketPurchaseService {
                 updateEventCapacity(event, totalTickets);
                 var ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
 
-                // Send confirmation email with detailed error handling
-                String emailStatus = "Email sent successfully";
-                try {
-                    System.out.println("=== ATTEMPTING TO SEND EMAIL ===");
-                    System.out.println("To: " + request.customerEmail());
-                    System.out.println("Subject: Your Ticket Confirmation - " + event.getName());
-                    
-                    emailService.sendTicketConfirmation(
-                            request.customerEmail(),
-                            "Your Ticket Confirmation - " + event.getName(),
-                            ticketDetails
-                    );
-                    
-                    System.out.println("✅ Email sent successfully to: " + request.customerEmail());
-                } catch (Exception emailException) {
-                    // Log detailed error information
-                    System.err.println("❌ ERROR: Failed to send confirmation email");
-                    System.err.println("Recipient: " + request.customerEmail());
-                    System.err.println("Error Type: " + emailException.getClass().getName());
-                    System.err.println("Error Message: " + emailException.getMessage());
-                    emailException.printStackTrace();
-                    emailStatus = "Purchase successful, but email could not be sent. Please contact support.";
-                }
+                // Trigger confirmation email asynchronously (does NOT block payment)
+                System.out.println("=== QUEUING ASYNC EMAIL SEND ===");
+                System.out.println("To: " + request.customerEmail());
+                System.out.println("Subject: Your Ticket Confirmation - " + event.getName());
+
+                emailService.sendTicketConfirmation(
+                        request.customerEmail(),
+                        "Your Ticket Confirmation - " + event.getName(),
+                        ticketDetails
+                );
+
+                System.out.println("✅ Email send requested (async) for: " + request.customerEmail());
 
                 return new TicketPurchaseResponse(
                         true,
-                        "Purchase successful! " + emailStatus,
+                        "Purchase successful! A confirmation email will be sent shortly.",
                         getTransactionId(paymentResponse),
                         ticketDetails,
                         getCode(paymentResponse),
@@ -178,9 +167,7 @@ public class TicketPurchaseService {
         return paymentService.processPayment(paymentRequest);
     }
 
-    // Modified to generate QR codes
-    // NOTE: This creates individual ticket instances (purchased tickets)
-    // They ARE linked to the event but filtered out when displaying event details
+
     private List<TicketType> generateAndPersistTickets(Event event, TicketPurchaseRequest request) throws IOException {
         var tickets = new ArrayList<TicketType>();
 
@@ -202,9 +189,9 @@ public class TicketPurchaseService {
                     // Generate QR code after ticket has ID
                     var qrData = String.format(
                             "https://localhost:3000/verify-ticket?ticketId=%s&eventId=%d&type=%s",
-                            ticket.getId(),       // Ticket ID is now a String (alphanumeric)
-                            event.getId(),        // Event ID remains a Long
-                            ticket.getCategory()  // Enum value (e.g., "STANDARD")
+                            ticket.getId(),
+                            event.getId(),
+                            ticket.getCategory()
                     );
                     var qrPath = qrCodeService.generateQRCode(qrData, 200, 200);
                     ticket.setQrCodePath(qrPath);
