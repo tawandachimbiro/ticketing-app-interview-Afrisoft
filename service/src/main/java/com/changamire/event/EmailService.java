@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -41,7 +40,7 @@ public class EmailService {
      */
     @Async("emailTaskExecutor")
     public void sendTicketConfirmation(String to, String subject, String htmlContent) {
-        System.out.println("📧 [ASYNC EMAIL] Queued email to: " + to + " with subject: " + subject);
+        System.out.println(" [ASYNC EMAIL] Queued email to: " + to + " with subject: " + subject);
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;

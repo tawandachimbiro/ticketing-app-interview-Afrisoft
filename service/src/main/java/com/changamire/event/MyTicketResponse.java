@@ -22,6 +22,5 @@ public record MyTicketResponse(
         String venue,
         String city,
         LocalDateTime purchaseDate
-) {
-}
+) {}
 

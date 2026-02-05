@@ -57,6 +57,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bus/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/tickets/purchase").permitAll()
+                // Actuator endpoints: health is public (for monitoring), others require ADMIN
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
