@@ -40,6 +40,9 @@ public class TicketType extends AbstractAuditingEntity {
 
     private Double price;
 
+    @Column(name = "customer_email", length = 150)
+    private String customerEmail;
+
     @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "event_id")

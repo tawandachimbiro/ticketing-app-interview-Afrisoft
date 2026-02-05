@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
@@ -69,6 +70,7 @@ public class EventController {
 
     @Operation(summary = "Create new event", description = "Create a new event with ticket types and pricing information")
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventCreateRequest request) {
         EventResponse response = eventService.createEvent(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -76,10 +78,19 @@ public class EventController {
 
     @Operation(summary = "Update event", description = "Update an existing event's details including ticket types and pricing")
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventResponse> updateEvent(
             @PathVariable Long id,
             @Valid @RequestBody EventUpdateRequest request) {
         EventResponse response = eventService.updateEvent(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Delete event(Soft delete)", description = "Soft delete an event (admin only). Event is hidden but kept for audit.")
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+        eventService.softDeleteEvent(id);
+        return ResponseEntity.noContent().build();
     }
 }

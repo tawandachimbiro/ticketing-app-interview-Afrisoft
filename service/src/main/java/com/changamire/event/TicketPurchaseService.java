@@ -182,6 +182,7 @@ public class TicketPurchaseService {
                 var ticket = new TicketType();
                 ticket.setCategory(ticketTemplate.getCategory());
                 ticket.setPrice(ticketTemplate.getPrice());
+                ticket.setCustomerEmail(request.customerEmail());
                 ticket.setEvent(event);  // Keep event relationship for validation
                 ticketTypeRepository.save(ticket); // Save first to generate ID
 

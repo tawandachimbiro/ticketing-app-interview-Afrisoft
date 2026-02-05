@@ -70,5 +70,13 @@ public class EventSpecifications  {
         };
     }
 
+    /**
+     * Exclude soft-deleted events.
+     */
+    public static Specification<Event> notDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isFalse(root.get("deleted"));
+    }
+
 
 }

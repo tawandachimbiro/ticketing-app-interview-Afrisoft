@@ -43,17 +43,27 @@ public class Event extends AbstractAuditingEntity {
     private String latitude;
     private String longitude;
     private Integer capacity;
-    
+
     @Column(columnDefinition = "TEXT")
     private String description;
-    
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String banner_url;
-    
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     private String image_url;
+
+    /**
+     * Soft delete flag and timestamp.
+     * When deleted is true, the event is considered removed from the system
+     * but remains in the database for audit/history.
+     */
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
+    private LocalDateTime deletedAt;
 
     @JsonManagedReference
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)

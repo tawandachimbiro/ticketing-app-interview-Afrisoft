@@ -3,6 +3,8 @@ package com.changamire.event;
 import com.changamire.ticket.TicketType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /**
  * Ticket Type Repository
  * 
@@ -14,4 +16,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @since 2026-02-04
  */
 public interface  TicketTypeRepository extends JpaRepository<TicketType, String> {
+
+    /**
+     * Find tickets purchased by a given customer email, newest first.
+     */
+    List<TicketType> findByCustomerEmailOrderByCreatedDateDesc(String customerEmail);
 }

@@ -30,7 +30,8 @@ public class EventService {
 
     public Page<Event> getAllEvents(int page, int size) {
         var pageable = PageRequest.of(page, size);
-        var eventsPage = eventRepository.findAll(pageable);
+        // Only return events that are not soft-deleted
+        var eventsPage = eventRepository.findByDeletedFalse(pageable);
         
         // Filter out purchased tickets from all events
         eventsPage.forEach(event -> {
@@ -44,7 +45,7 @@ public class EventService {
     }
 
     public Event getEventById(Long id) {
-        var event = eventRepository.findById(id)
+        var event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
         
         // Filter out purchased tickets (those with QR codes) - only return ticket templates
@@ -62,7 +63,8 @@ public class EventService {
                                           int page, int size) {
         var pageable = PageRequest.of(page, size);
         
-        var spec = Specification.where(EventSpecifications.hasName(name))
+        var spec = Specification.where(EventSpecifications.notDeleted())
+            .and(EventSpecifications.hasName(name))
             .and(EventSpecifications.hasCity(city))
             .and(EventSpecifications.hasType(type))
             .and(EventSpecifications.hasPromotion(ispromotion))
@@ -137,7 +139,7 @@ public class EventService {
     }
 
     public EventResponse updateEvent(Long id, EventUpdateRequest request) {
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
 
         // Update only provided fields (partial update)
@@ -216,5 +218,18 @@ public class EventService {
                 .ticketTypes(ticketTemplates)
                 .message("Event updated successfully")
                 .build();
+    }
+
+    /**
+     * Soft delete an event by marking it as deleted instead of removing it from the database.
+     */
+    public void softDeleteEvent(Long id) {
+        var event = eventRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
+
+        event.setDeleted(true);
+        event.setDeletedAt(LocalDateTime.now());
+
+        eventRepository.save(event);
     }
 }
