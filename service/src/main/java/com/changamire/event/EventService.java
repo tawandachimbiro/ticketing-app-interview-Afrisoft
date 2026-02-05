@@ -30,12 +30,30 @@ public class EventService {
 
     public Page<Event> getAllEvents(int page, int size) {
         var pageable = PageRequest.of(page, size);
-        return eventRepository.findAll(pageable);
+        var eventsPage = eventRepository.findAll(pageable);
+        
+        // Filter out purchased tickets from all events
+        eventsPage.forEach(event -> {
+            var ticketTemplates = event.getTicketTypes().stream()
+                    .filter(tt -> tt.getQrCodePath() == null)  // Only templates (no QR codes)
+                    .toList();
+            event.setTicketTypes(ticketTemplates);
+        });
+        
+        return eventsPage;
     }
 
     public Event getEventById(Long id) {
-        return eventRepository.findById(id)
+        var event = eventRepository.findById(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
+        
+        // Filter out purchased tickets (those with QR codes) - only return ticket templates
+        var ticketTemplates = event.getTicketTypes().stream()
+                .filter(tt -> tt.getQrCodePath() == null)  // Templates don't have QR codes
+                .toList();
+        
+        event.setTicketTypes(ticketTemplates);
+        return event;
     }
 
     public Page<Event> getEventsByFilters(String name, String city, String type, String ispromotion,
@@ -51,7 +69,17 @@ public class EventService {
             .and(EventSpecifications.betweenDates(startDate, endDate))
             .and(EventSpecifications.hasTicketPriceBetween(minPrice, maxPrice));
 
-        return eventRepository.findAll(spec, pageable);
+        var eventsPage = eventRepository.findAll(spec, pageable);
+        
+        // Filter out purchased tickets from all events
+        eventsPage.forEach(event -> {
+            var ticketTemplates = event.getTicketTypes().stream()
+                    .filter(tt -> tt.getQrCodePath() == null)  // Only templates (no QR codes)
+                    .toList();
+            event.setTicketTypes(ticketTemplates);
+        });
+        
+        return eventsPage;
     }
 
     public EventResponse createEvent(EventCreateRequest request) {
@@ -82,6 +110,11 @@ public class EventService {
         }
 
         var savedEvent = eventRepository.save(event);
+        
+        // Filter out purchased tickets (only return templates)
+        var ticketTemplates = savedEvent.getTicketTypes().stream()
+                .filter(tt -> tt.getQrCodePath() == null)
+                .toList();
 
         return EventResponse.builder()
                 .id(savedEvent.getId())
@@ -98,7 +131,7 @@ public class EventService {
                 .description(savedEvent.getDescription())
                 .banner_url(savedEvent.getBanner_url())
                 .image_url(savedEvent.getImage_url())
-                .ticketTypes(savedEvent.getTicketTypes())
+                .ticketTypes(ticketTemplates)
                 .message("Event created successfully")
                 .build();
     }
@@ -148,10 +181,10 @@ public class EventService {
             event.setImage_url(request.image_url());
         }
         if (request.ticketTypes() != null) {
-            // Clear existing ticket types
-            event.getTicketTypes().clear();
+            // IMPORTANT: Only clear ticket TEMPLATES, not purchased tickets (which have QR codes)
+            event.getTicketTypes().removeIf(tt -> tt.getQrCodePath() == null);
             
-            // Add new ticket types with proper relationship
+            // Add new ticket type templates with proper relationship
             for (TicketType ticketType : request.ticketTypes()) {
                 ticketType.setEvent(event);
                 event.getTicketTypes().add(ticketType);
@@ -159,6 +192,11 @@ public class EventService {
         }
 
         var updatedEvent = eventRepository.save(event);
+        
+        // Filter out purchased tickets (only return templates)
+        var ticketTemplates = updatedEvent.getTicketTypes().stream()
+                .filter(tt -> tt.getQrCodePath() == null)
+                .toList();
 
         return EventResponse.builder()
                 .id(updatedEvent.getId())
@@ -175,7 +213,7 @@ public class EventService {
                 .description(updatedEvent.getDescription())
                 .banner_url(updatedEvent.getBanner_url())
                 .image_url(updatedEvent.getImage_url())
-                .ticketTypes(updatedEvent.getTicketTypes())
+                .ticketTypes(ticketTemplates)
                 .message("Event updated successfully")
                 .build();
     }

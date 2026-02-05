@@ -1,7 +1,7 @@
 package com.changamire.payment;
 
 
-import com.changamire.RandomTransactionGenerator;
+import  com.changamire.RandomTransactionGenerator;
 import com.changamire.enums.Currency;
 import com.changamire.enums.PaymentMethod;
 import com.changamire.enums.Status;
@@ -37,7 +37,7 @@ import java.util.UUID;
  */
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class   PaymentService {
     private final RestTemplate restTemplate;
     private final TransactionRepository transactionRepository;
     
@@ -140,7 +140,7 @@ public class PaymentService {
         // Return success response
         return new PaymentResponse(
                 "success",                                      // result
-                Status.SUCCESS,                                 // status
+                Status. SUCCESS,                                 // status
                 testTransactionId,                              // transactionId
                 transactionRef,                                 // transactionReference
                 "Test mode: Payment processed successfully",    // message

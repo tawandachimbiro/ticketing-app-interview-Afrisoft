@@ -179,20 +179,23 @@ public class TicketPurchaseService {
     }
 
     // Modified to generate QR codes
+    // NOTE: This creates individual ticket instances (purchased tickets)
+    // They ARE linked to the event but filtered out when displaying event details
     private List<TicketType> generateAndPersistTickets(Event event, TicketPurchaseRequest request) throws IOException {
         var tickets = new ArrayList<TicketType>();
 
         request.tickets().forEach(ticketRequest -> {
-            var ticketType = event.getTicketTypes().stream()
+            var ticketTemplate = event.getTicketTypes().stream()
                     .filter(tt -> tt.getCategory() == ticketRequest.category())
+                    .filter(tt -> tt.getQrCodePath() == null) // Only get template tickets (not purchased ones)
                     .findFirst()
                     .orElseThrow(() -> new IllegalArgumentException("Ticket type not available: " + ticketRequest.category()));
 
             for (int i = 0; i < ticketRequest.quantity(); i++) {
                 var ticket = new TicketType();
-                ticket.setCategory(ticketType.getCategory());
-                ticket.setPrice(ticketType.getPrice());
-                ticket.setEvent(event);
+                ticket.setCategory(ticketTemplate.getCategory());
+                ticket.setPrice(ticketTemplate.getPrice());
+                ticket.setEvent(event);  // Keep event relationship for validation
                 ticketTypeRepository.save(ticket); // Save first to generate ID
 
                 try {
