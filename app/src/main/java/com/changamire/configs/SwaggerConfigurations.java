@@ -41,7 +41,7 @@ public class SwaggerConfigurations {
                 .description("Afrisoft (interview) Ticketing system with JWT Authentication").termsOfService("https://www.chimbiro.co.zw/#/")
                 .license(mitLicense);
 
-        // JWT Security Scheme
+
         SecurityScheme securityScheme = new SecurityScheme()
                 .name("Bearer Authentication")
                 .type(SecurityScheme.Type.HTTP)

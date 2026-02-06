@@ -46,7 +46,7 @@ public class CacheConfig {
         cacheManager.setCaffeine(Caffeine.newBuilder()
             .maximumSize(500)
             .expireAfterWrite(10, TimeUnit.MINUTES)
-            .recordStats() // Enable statistics for monitoring
+            .recordStats()
         );
         
         return cacheManager;

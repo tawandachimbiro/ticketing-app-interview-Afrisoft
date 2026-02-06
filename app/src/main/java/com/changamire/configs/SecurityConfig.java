@@ -49,7 +49,6 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
-            // CORS enabled - configured in CorsConfig.java
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/test/**").permitAll()
@@ -57,7 +56,6 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/events/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/bus/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/tickets/purchase").permitAll()
-                // Actuator endpoints: health is public (for monitoring), others require ADMIN
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/actuator/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
