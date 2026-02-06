@@ -4,6 +4,7 @@ import com.changamire.exceptions.EmailSendingException;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -26,6 +27,7 @@ import java.util.regex.Pattern;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -40,7 +42,7 @@ public class EmailService {
      */
     @Async("emailTaskExecutor")
     public void sendTicketConfirmation(String to, String subject, String htmlContent) {
-        System.out.println(" [ASYNC EMAIL] Queued email to: " + to + " with subject: " + subject);
+        log.info("async email Queued email to: {} with subject: {}", to, subject);
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper;
@@ -60,11 +62,9 @@ public class EmailService {
             }
 
             mailSender.send(message);
-            System.out.println("✅ [ASYNC EMAIL] Sent successfully to: " + to);
+            log.info("async email Sent successfully to: {}", to);
         } catch (MessagingException e) {
-            // Log and wrap in custom exception for visibility; this runs in background thread
-            System.err.println("❌ [ASYNC EMAIL] Failed to send email to: " + to);
-            System.err.println("Reason: " + e.getMessage());
+            log.error("async email Failed to send email to: {}. Reason: {}", to, e.getMessage(), e);
             throw new EmailSendingException("Failed to send email: " + e.getMessage());
         }
     }

@@ -31,7 +31,7 @@ public class BusTicketService {
     private final BusServiceRepository busServiceRepository;
     private final BusRouteRepository busRouteRepository;
 
-    // Get all bus tickets
+
     public List<BusTicketDTO> getAllBusTickets() {
         var schedules = busScheduleRepository.findAllWithRouteAndService();
         return schedules.stream()
@@ -39,7 +39,7 @@ public class BusTicketService {
                 .toList();
     }
 
-    // Create new bus ticket
+
     public BusTicketDTO createBusTicket(BusTicketDTO dto) {
         var towns = validateAndSplitRoute(dto.route());
         var service = getOrCreateBusService(dto.busOperator());
@@ -49,14 +49,14 @@ public class BusTicketService {
         return convertToDTO(schedule);
     }
 
-    // Seat availability check
+
     public boolean isSeatAvailable(String ticketId, int quantity) {
         var schedule = (BusSchedule) busScheduleRepository.findByTicketId(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
         return schedule.getAvailableSeats() >= quantity;
     }
 
-    // Helper methods
+
     private String[] validateAndSplitRoute(String route) {
         String[] towns = route.split(" to ");
         if (towns.length != 2) throw new IllegalArgumentException("Invalid route format");

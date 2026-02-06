@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * Error Response Model
- * 
+ * <p>
  * This class represents a standardized error response containing HTTP status code
  * and error message for API error handling.
  * 

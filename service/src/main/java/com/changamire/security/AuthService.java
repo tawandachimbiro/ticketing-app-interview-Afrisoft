@@ -37,17 +37,14 @@ public class AuthService {
      * @return JWT authentication response with tokens
      */
     public JwtAuthResponse signup(SignupRequest request) {
-        // Check if username exists
         if (userRepository.existsByUsername(request.username())) {
             return new JwtAuthResponse(false, "Username already exists", null, null, null, null);
         }
-        
-        // Check if email exists
+
         if (userRepository.existsByEmail(request.email())) {
             return new JwtAuthResponse(false, "Email already exists", null, null, null, null);
         }
-        
-        // Create new user
+
         var user = User.builder()
                 .username(request.username())
                 .email(request.email())

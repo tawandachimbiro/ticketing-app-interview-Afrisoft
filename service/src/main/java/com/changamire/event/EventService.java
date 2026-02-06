@@ -2,7 +2,8 @@ package com.changamire.event;
 
 import com.changamire.exceptions.EventNotFoundException;
 import com.changamire.ticket.TicketType;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -29,11 +30,12 @@ import java.util.ArrayList;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class EventService {
 
-    @Autowired
-    private EventRepository eventRepository;
+    private final EventRepository eventRepository;
 
     /**
      * Get all events with pagination
@@ -46,14 +48,14 @@ public class EventService {
      */
     @Cacheable(value = "events-all", key = "#page + '-' + #size")
     public Page<Event> getAllEvents(int page, int size) {
+        log.info("Request to get all events with page {} and size {}", page, size);
         var pageable = PageRequest.of(page, size);
-        // Only return events that are not soft-deleted
         var eventsPage = eventRepository.findByDeletedFalse(pageable);
-        
+
         // Filter out purchased tickets from all events
         eventsPage.forEach(event -> {
             var ticketTemplates = event.getTicketTypes().stream()
-                    .filter(tt -> tt.getQrCodePath() == null)  // Only templates (no QR codes)
+                    .filter(tt -> tt.getQrCodePath() == null)
                     .toList();
             event.setTicketTypes(ticketTemplates);
         });
@@ -72,12 +74,13 @@ public class EventService {
      */
     @Cacheable(value = "event-by-id", key = "#id")
     public Event getEventById(Long id) {
+        log.info("Request to get event by id {}", id);
         var event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
         
-        // Filter out purchased tickets (those with QR codes) - only return ticket templates
+        // Filter out purchased tickets
         var ticketTemplates = event.getTicketTypes().stream()
-                .filter(tt -> tt.getQrCodePath() == null)  // Templates don't have QR codes
+                .filter(tt -> tt.getQrCodePath() == null)
                 .toList();
         
         event.setTicketTypes(ticketTemplates);
@@ -95,6 +98,7 @@ public class EventService {
     @Cacheable(value = "events-filtered", 
                key = "#filterRequest.name + '-' + #filterRequest.city + '-' + #filterRequest.type + '-' + #filterRequest.ispromotion + '-' + #filterRequest.startDate + '-' + #filterRequest.endDate + '-' + #filterRequest.minPrice + '-' + #filterRequest.maxPrice + '-' + #filterRequest.page + '-' + #filterRequest.size")
     public Page<Event> getEventsByFilters(EventFilterRequest filterRequest) {
+        log.info("Request to get events by filters: {}", filterRequest);
         var pageable = PageRequest.of(filterRequest.getPage(), filterRequest.getSize());
         
         var spec = Specification.where(EventSpecifications.notDeleted())
@@ -110,7 +114,7 @@ public class EventService {
         // Filter out purchased tickets from all events
         eventsPage.forEach(event -> {
             var ticketTemplates = event.getTicketTypes().stream()
-                    .filter(tt -> tt.getQrCodePath() == null)  // Only templates (no QR codes)
+                    .filter(tt -> tt.getQrCodePath() == null)
                     .toList();
             event.setTicketTypes(ticketTemplates);
         });
@@ -130,7 +134,7 @@ public class EventService {
         @CacheEvict(value = "events-filtered", allEntries = true)
     })
     public EventResponse createEvent(EventCreateRequest request) {
-        // Create event without ticket types first
+        log.info("Request to create event: {}", request);
         var event = Event.builder()
                 .name(request.name())
                 .dateTime(request.dateTime())
@@ -148,7 +152,6 @@ public class EventService {
                 .ticketTypes(new ArrayList<>())
                 .build();
 
-        // Establish bidirectional relationship with ticket types
         if (request.ticketTypes() != null && !request.ticketTypes().isEmpty()) {
             for (TicketType ticketType : request.ticketTypes()) {
                 ticketType.setEvent(event);
@@ -158,7 +161,7 @@ public class EventService {
 
         var savedEvent = eventRepository.save(event);
         
-        // Filter out purchased tickets (only return templates)
+        // Filter out purchased tickets
         var ticketTemplates = savedEvent.getTicketTypes().stream()
                 .filter(tt -> tt.getQrCodePath() == null)
                 .toList();
@@ -198,54 +201,28 @@ public class EventService {
         @CacheEvict(value = "event-by-id", key = "#id")
     })
     public EventResponse updateEvent(Long id, EventUpdateRequest request) {
+        log.info("Request to update event with id {}: {}", id, request);
         Event event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
 
         // Update only provided fields (partial update)
-        if (request.name() != null) {
-            event.setName(request.name());
-        }
-        if (request.dateTime() != null) {
-            event.setDateTime(request.dateTime());
-        }
-        if (request.venue() != null) {
-            event.setVenue(request.venue());
-        }
-        if (request.address() != null) {
-            event.setAddress(request.address());
-        }
-        if (request.city() != null) {
-            event.setCity(request.city());
-        }
-        if (request.type() != null) {
-            event.setType(request.type());
-        }
-        if (request.ispromotion() != null) {
-            event.setIspromotion(request.ispromotion());
-        }
-        if (request.latitude() != null) {
-            event.setLatitude(request.latitude());
-        }
-        if (request.longitude() != null) {
-            event.setLongitude(request.longitude());
-        }
-        if (request.capacity() != null) {
-            event.setCapacity(request.capacity());
-        }
-        if (request.description() != null) {
-            event.setDescription(request.description());
-        }
-        if (request.banner_url() != null) {
-            event.setBanner_url(request.banner_url());
-        }
-        if (request.image_url() != null) {
-            event.setImage_url(request.image_url());
-        }
+        applyIfNotNull(request.name(), event::setName);
+        applyIfNotNull(request.dateTime(), event::setDateTime);
+        applyIfNotNull(request.venue(), event::setVenue);
+        applyIfNotNull(request.address(), event::setAddress);
+        applyIfNotNull(request.city(), event::setCity);
+        applyIfNotNull(request.type(), event::setType);
+        applyIfNotNull(request.ispromotion(), event::setIspromotion);
+        applyIfNotNull(request.latitude(), event::setLatitude);
+        applyIfNotNull(request.longitude(), event::setLongitude);
+        applyIfNotNull(request.capacity(), event::setCapacity);
+        applyIfNotNull(request.description(), event::setDescription);
+        applyIfNotNull(request.banner_url(), event::setBanner_url);
+        applyIfNotNull(request.image_url(), event::setImage_url);
         if (request.ticketTypes() != null) {
-            // IMPORTANT: Only clear ticket TEMPLATES, not purchased tickets (which have QR codes)
             event.getTicketTypes().removeIf(tt -> tt.getQrCodePath() == null);
-            
-            // Add new ticket type templates with proper relationship
+
+            // Add new ticket type
             for (TicketType ticketType : request.ticketTypes()) {
                 ticketType.setEvent(event);
                 event.getTicketTypes().add(ticketType);
@@ -254,7 +231,7 @@ public class EventService {
 
         var updatedEvent = eventRepository.save(event);
         
-        // Filter out purchased tickets (only return templates)
+        // Filter out purchased tickets
         var ticketTemplates = updatedEvent.getTicketTypes().stream()
                 .filter(tt -> tt.getQrCodePath() == null)
                 .toList();
@@ -280,6 +257,16 @@ public class EventService {
     }
 
     /**
+     * Utility helper to reduce repetitive null checks when applying updates.
+     * Applies the given consumer only when the value is non-null.
+     */
+    private <T> void applyIfNotNull(T value, java.util.function.Consumer<T> consumer) {
+        if (value != null) {
+            consumer.accept(value);
+        }
+    }
+
+    /**
      * Soft delete an event by marking it as deleted instead of removing it from the database.
      * Evicts all event-related caches to ensure deleted event no longer appears
      * 
@@ -287,11 +274,13 @@ public class EventService {
      * @throws EventNotFoundException if event not found
      */
     @Caching(evict = {
-        @CacheEvict(value = "events-all", allEntries = true),
-        @CacheEvict(value = "events-filtered", allEntries = true),
-        @CacheEvict(value = "event-by-id", key = "#id")
+            @CacheEvict(value = "events-all", allEntries = true),
+            @CacheEvict(value = "events-filtered", allEntries = true),
+            @CacheEvict(value = "event-by-id", key = "#id")
     })
     public void softDeleteEvent(Long id) {
+        log.info("Request to soft delete event with id {}", id);
+
         var event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
 
@@ -299,5 +288,6 @@ public class EventService {
         event.setDeletedAt(LocalDateTime.now());
 
         eventRepository.save(event);
+        log.info("Event with id {} marked as deleted", id);
     }
 }

@@ -86,7 +86,7 @@ public class   PaymentService {
             return response;
         } catch (ResourceAccessException ex) {
             handleConnectivityError(ex);
-            throw ex; // This will be caught by global handler
+            throw ex;
         }
     }
 
@@ -136,14 +136,14 @@ public class   PaymentService {
         
         // Return success response
         return new PaymentResponse(
-                "success",                                      // result
-                Status. SUCCESS,                                 // status
-                testTransactionId,                              // transactionId
-                transactionRef,                                 // transactionReference
-                "Test mode: Payment processed successfully",    // message
-                "Payment successful",                           // textMessage
-                null,                                           // qrCode
-                "SUCCESS"                                       // code
+                "success",
+                Status. SUCCESS,
+                testTransactionId,
+                transactionRef,
+                "Test mode: Payment processed successfully",
+                "Payment successful",
+                null,
+                "SUCCESS"
         );
     }
 }

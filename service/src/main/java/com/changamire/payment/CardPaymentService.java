@@ -80,7 +80,7 @@ public class CardPaymentService {
             return response;
         } catch (ResourceAccessException ex) {
             handleConnectivityError(ex);
-            throw ex; // This will be caught by global handler
+            throw ex;
         }
     }
 
@@ -126,13 +126,13 @@ public class CardPaymentService {
         
         // Return success response
         return new CardPaymentResponse(
-                "success",                                              // result
-                testTransactionId,                                      // transactionId
-                transactionRef,                                         // transactionReference
-                "Test mode: Card payment processed successfully",       // message
-                request.amount(),                                       // total (Double)
-                "https://test-payment-page.local/checkout/" + testCheckoutId,  // hostedUrl
-                testCheckoutId                                          // checkoutId
+                "success",
+                testTransactionId,
+                transactionRef,
+                "Test mode: Card payment processed successfully",
+                request.amount(),
+                "https://test-payment-page.local/checkout/" + testCheckoutId,
+                testCheckoutId
         );
     }
 }

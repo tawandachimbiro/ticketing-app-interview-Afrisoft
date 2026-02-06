@@ -3,6 +3,7 @@ package com.changamire.security;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import java.util.Date;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @Component
 public class JwtTokenProvider {
     
@@ -91,12 +93,13 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token);
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
-            // Log the exception if needed
+            log.warn("JWT validation failed: {}", e.getMessage());
+            log.debug("JWT validation exception", e);
             return false;
         }
     }

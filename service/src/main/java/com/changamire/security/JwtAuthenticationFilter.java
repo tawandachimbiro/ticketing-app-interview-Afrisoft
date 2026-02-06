@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,6 +26,7 @@ import java.io.IOException;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -57,7 +59,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            // Log error if needed, but don't block the request
+            log.warn("JWT authentication failed for request {} {}: {}",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    e.getMessage(), e);
         }
         
         filterChain.doFilter(request, response);
