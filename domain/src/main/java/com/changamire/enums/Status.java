@@ -2,6 +2,16 @@ package com.changamire.enums;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
+/**
+ * Status Enum
+ * <p>
+ * This enum represents payment transaction statuses including SUCCESS,
+ * FAILED, and PENDING. Includes JSON serialization support for API responses.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 public enum Status {
     SUCCESS("success"),
     FAILED("failed"),

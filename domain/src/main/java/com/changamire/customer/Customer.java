@@ -1,6 +1,7 @@
 package com.changamire.customer;
 
 
+import com.changamire.base.AbstractAuditingEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,12 +11,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Customer Entity
+ * <p>
+ * This entity represents a customer who purchases tickets in the system.
+ * Contains basic customer information including contact details.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
-public class Customer {
+public class Customer extends AbstractAuditingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

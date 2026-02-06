@@ -1,5 +1,6 @@
 package com.changamire.bus;
 
+import com.changamire.base.AbstractAuditingEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,12 +11,23 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Bus Route Entity
+ * <p>
+ * This entity represents a bus route between two towns including
+ * departure/destination information, ticket pricing, and associated
+ * schedules for the route.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
-public class BusRoute {
+public class BusRoute extends AbstractAuditingEntity {
 
 
     @Id

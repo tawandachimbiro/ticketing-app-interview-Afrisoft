@@ -1,53 +1,114 @@
-#services:
-#
-#  pgadmin:
-#    container_name: ms_pgadmin
-#    image: dpage/pgadmin4
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
-#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin}
-#      PGADMIN_CONFIG_SERVER_MODE: 'False'
-#    volumes:
-#      - pgadmin:/var/lib/pgadmin
-#    ports:
-#      - "5050:80"
-#    networks:
-#      - microservices-net
-#    restart: unless-stopped
-#
-#
-#
-#  mongodb:
-#    image: mongo
-#    container_name: mongo_db
-#    ports:
-#      - 27017:27017
-#    volumes:
-#      - mongo:/data
-#    environment:
-#      - MONGO_INITDB_ROOT_USERNAME=alibou
-#      - MONGO_INITDB_ROOT_PASSWORD=alibou
-#
-#  mongo-express:
-#    image: mongo-express
-#    container_name: mongo_express
-#    restart: always
-#    ports:
-#      - 8081:8081
-#    environment:
-#      - ME_CONFIG_MONGODB_ADMINUSERNAME=alibou
-#      - ME_CONFIG_MONGODB_ADMINPASSWORD=alibou
-#      - ME_CONFIG_MONGODB_SERVER=mongodb
-#
-#
-#
-#
-#
-#networks:
-#  microservices-net:
-#    driver: bridge
-#
-#volumes:
-#  postgres:
-#  pgadmin:
-#  mongo:
+version: '3.8'
+
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:11.2
+    container_name: ticketing_mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-Amill2017}
+      MYSQL_DATABASE: ${DB_NAME:-ticketing_app}
+      MYSQL_USER: ${DB_USER:-ticketing_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Amill2017}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - ticketing-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Spring Boot Application
+  ticketing-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketing_app
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      # Spring Profile
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-prod}
+      
+      # Database Configuration
+      SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/${DB_NAME:-ticketing_app}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-ticketing_user}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-Amill2017}
+      
+      # JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-sxwj8RC6QZwmtwpHdHQ6nebcWqunsmY1H8q6sO02lNTfsuQOLeHcJmGir/A5Ll3SYon9YS6zfSOpBDcIyBQy1w==}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-604800000}
+      
+      # Mail Configuration
+      SPRING_MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-587}
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME:-chimbirotawanda@gmail.com}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD:-hvzv ahom fius lchj}
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH: true
+      SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE: true
+      SPRING_MAIL_PROPERTIES_MAIL_DEBUG: false
+      
+      # Payment Configuration
+      PAYMENT_TEST_MODE: ${PAYMENT_TEST_MODE:-true}
+      MOTAPA_API_BASE_URL: ${MOTAPA_API_BASE_URL:-https://api.motapa.africa/v1}
+      MOTAPA_API_SECRET_KEY: ${MOTAPA_API_SECRET_KEY:-pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl}
+      
+      # Server Configuration
+      SERVER_PORT: 8099
+      
+      # Cache Configuration
+      SPRING_CACHE_TYPE: caffeine
+    ports:
+      - "${APP_PORT:-8099}:8099"
+    volumes:
+      - qrcodes:/app/qrcodes
+    networks:
+      - ticketing-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8099/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Optional: phpMyAdmin for database management
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: ticketing_phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      - mariadb
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-ticketing_user}
+      PMA_PASSWORD: ${DB_PASSWORD:-Amill2017}
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "${PHPMYADMIN_PORT:-8080}:80"
+    networks:
+      - ticketing-network
+
+networks:
+  ticketing-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+  qrcodes:
+    driver: local

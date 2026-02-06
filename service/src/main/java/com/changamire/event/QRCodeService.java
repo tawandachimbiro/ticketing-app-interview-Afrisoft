@@ -18,6 +18,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * QR Code Service
+ * 
+ * This service provides QR code generation and reading capabilities for tickets.
+ * Generated QR codes contain ticket verification URLs and are used for
+ * ticket validation at event entrances.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 public class QRCodeService {
     

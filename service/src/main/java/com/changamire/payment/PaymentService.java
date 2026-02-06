@@ -9,8 +9,6 @@ import com.changamire.exceptions.ExternalServiceUnavailableException;
 import com.changamire.exceptions.RecordNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.NestedExceptionUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,29 +19,48 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.UUID;
 
-
+/**
+ * Payment Service
+ * 
+ * This service handles mobile money payment processing through external payment
+ * gateway integration. It manages transaction creation, status tracking, and
+ * error handling for payment operations.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Service
 @RequiredArgsConstructor
-public class PaymentService {
+public class   PaymentService {
     private final RestTemplate restTemplate;
     private final TransactionRepository transactionRepository;
+    
+    // TEST MODE: Set to true for development/testing, false for production
+    // TODO: Move to configuration when ready for production
+    private static final boolean TEST_MODE = true;
 
     public PaymentResponse processPayment(PaymentRequest request) {
-        String transactionRef = "MOTAPAPAY-" + RandomTransactionGenerator.generateRandomNumbers();
+        var transactionRef = "MOTAPAPAY-" + RandomTransactionGenerator.generateRandomNumbers();
+        
+        // TEST MODE: Return success without calling external API
+        if (TEST_MODE) {
+            return createTestModeSuccessResponse(transactionRef, request);
+        }
 
-        Map<String, Object> apiRequest = new HashMap<>();
-        apiRequest.put("amount", request.getAmount());
-        apiRequest.put("email", request.getEmail());
-        apiRequest.put("mobile_money_number", request.getMobileMoneyNumber());
-        apiRequest.put("currency", request.getCurrency().name());
+        var apiRequest = new HashMap<String, Object>();
+        apiRequest.put("amount", request.amount());
+        apiRequest.put("email", request.email());
+        apiRequest.put("mobile_money_number", request.mobileMoneyNumber());
+        apiRequest.put("currency", request.currency().name());
         apiRequest.put("transaction_reference", transactionRef);
-        apiRequest.put("payment_method_type", request.getPaymentMethod().getType());
-        apiRequest.put("payment_method_code", request.getPaymentMethod().getCode());
+        apiRequest.put("payment_method_type", request.paymentMethod().getType());
+        apiRequest.put("payment_method_code", request.paymentMethod().getCode());
         apiRequest.put("requested_response", "success");
-        apiRequest.put("success_url", request.getSuccessUrl());
-        apiRequest.put("failure_url", request.getFailureUrl());
+        apiRequest.put("success_url", request.successUrl());
+        apiRequest.put("failure_url", request.failureUrl());
 
         try {
             PaymentResponse response = restTemplate.postForObject(
@@ -52,16 +69,16 @@ public class PaymentService {
                     PaymentResponse.class
             );
 
-            Transaction transaction = Transaction.builder()
-                    .transactionId(response.getTransactionId())
+            var transaction = Transaction.builder()
+                    .transactionId(response.transactionId())
                     .reference(transactionRef)
-                    .status(Status.valueOf(String.valueOf(response.getStatus())))
-                    .amount(BigDecimal.valueOf(request.getAmount()))
-                    .currency(Currency.valueOf(request.getCurrency().name()))
-                    .email(request.getEmail())
-                    .paymentMethod(PaymentMethod.valueOf(request.getPaymentMethod().name().toString()))
-                    .successUrl(request.getSuccessUrl())
-                    .failureUrl(request.getFailureUrl())
+                    .status(Status.valueOf(String.valueOf(response.status())))
+                    .amount(BigDecimal.valueOf(request.amount()))
+                    .currency(Currency.valueOf(request.currency().name()))
+                    .email(request.email())
+                    .paymentMethod(PaymentMethod.valueOf(request.paymentMethod().name().toString()))
+                    .successUrl(request.successUrl())
+                    .failureUrl(request.failureUrl())
                     .build();
 
             transactionRepository.save(transaction);
@@ -69,13 +86,13 @@ public class PaymentService {
             return response;
         } catch (ResourceAccessException ex) {
             handleConnectivityError(ex);
-            throw ex; // This will be caught by global handler
+            throw ex;
         }
     }
 
     private void handleConnectivityError(ResourceAccessException ex) {
-        Throwable rootCause = NestedExceptionUtils.getRootCause(ex);
-        String errorMessage = "Payment service is currently unavailable";
+        var rootCause = NestedExceptionUtils.getRootCause(ex);
+        var errorMessage = "Payment service is currently unavailable";
 
         if (rootCause instanceof UnknownHostException) {
             errorMessage = "Could not connect to payment service - check internet connection";
@@ -93,6 +110,41 @@ public class PaymentService {
     public Transaction getTransactionByReference(String reference) {
         return transactionRepository.findByReference(reference)
                 .orElseThrow(() -> new RecordNotFoundException("Transaction not found with reference: " + reference));
+    }
+    
+    /**
+     * Create a test mode success response without calling external payment API
+     * Used for development and testing when payment.test-mode=true
+     */
+    private PaymentResponse createTestModeSuccessResponse(String transactionRef, PaymentRequest request) {
+        var testTransactionId = "TEST-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        // Save test transaction to database
+        var transaction = Transaction.builder()
+                .transactionId(testTransactionId)
+                .reference(transactionRef)
+                .status(Status.SUCCESS)
+                .amount(BigDecimal.valueOf(request.amount()))
+                .currency(Currency.valueOf(request.currency().name()))
+                .email(request.email())
+                .paymentMethod(PaymentMethod.valueOf(request.paymentMethod().name()))
+                .successUrl(request.successUrl())
+                .failureUrl(request.failureUrl())
+                .build();
+        
+        transactionRepository.save(transaction);
+        
+        // Return success response
+        return new PaymentResponse(
+                "success",
+                Status. SUCCESS,
+                testTransactionId,
+                transactionRef,
+                "Test mode: Payment processed successfully",
+                "Payment successful",
+                null,
+                "SUCCESS"
+        );
     }
 }
 

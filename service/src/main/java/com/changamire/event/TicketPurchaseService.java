@@ -12,6 +12,7 @@ import com.changamire.enums.Status;
 import com.changamire.ticket.TicketType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -20,7 +21,20 @@ import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.changamire.event.Event;
 
+/**
+ * Ticket Purchase Service
+ * 
+ * This service orchestrates the complete ticket purchase workflow including
+ * payment processing (mobile money and card), ticket generation with QR codes,
+ * email confirmation, and event capacity management.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TicketPurchaseService {
@@ -30,15 +44,15 @@ public class TicketPurchaseService {
     private final CardPaymentService cardPaymentService;
     private final EmailService emailService;
     private final TicketTypeRepository ticketTypeRepository;
-    private final QRCodeService qrCodeService; // QR Code Service added
+    private final QRCodeService qrCodeService;
 
     @Transactional
     public TicketPurchaseResponse purchaseTicket(TicketPurchaseRequest request) {
-        Event event = eventRepository.findById(request.getEventId())
+        var event = eventRepository.findById(request.eventId())
                 .orElseThrow(() -> new EventNotFoundException("Event not found"));
 
-        int totalTickets = request.getTickets().stream()
-                .mapToInt(TicketTypeQuantity::getQuantity)
+        var totalTickets = request.tickets().stream()
+                .mapToInt(TicketTypeQuantity::quantity)
                 .sum();
 
         if (event.getCapacity() < totalTickets) {
@@ -46,27 +60,33 @@ public class TicketPurchaseService {
         }
 
         try {
-            double totalAmount = calculateTotalAmount(event, request.getTickets());
-            Object paymentResponse = processPayment(event, request, totalAmount);
+            var totalAmount = calculateTotalAmount(event, request.tickets());
+            var paymentResponse = processPayment(event, request, totalAmount);
 
             if (isPaymentSuccessful(paymentResponse)) {
-                List<TicketType> purchasedTickets = generateAndPersistTickets(event, request);
+                var purchasedTickets = generateAndPersistTickets(event, request);
                 updateEventCapacity(event, totalTickets);
-                String ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
+                var ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
+
+                log.info(" queuing async email send ");
+                log.info("To: {}", request.customerEmail());
+                log.info("Subject: Your Ticket Confirmation - {}", event.getName());
 
                 emailService.sendTicketConfirmation(
-                        request.getCustomerEmail(),
+                        request.customerEmail(),
                         "Your Ticket Confirmation - " + event.getName(),
                         ticketDetails
                 );
 
+                log.info("Email send requested (async) for: {}", request.customerEmail());
+
                 return new TicketPurchaseResponse(
                         true,
-                        "Purchase successful",
+                        "Purchase successful! A confirmation email will be sent shortly.",
                         getTransactionId(paymentResponse),
                         ticketDetails,
                         getCode(paymentResponse),
-                        request.getPaymentMethod(),
+                        request.paymentMethod(),
                         getHostedUrl(paymentResponse),
                         getCheckoutId(paymentResponse)
                 );
@@ -97,24 +117,24 @@ public class TicketPurchaseService {
         }
     }
 
-    // Helper methods remain the same
+
     private String getCode(Object response) {
-        if (response instanceof PaymentResponse pr) return pr.getCode();
+        if (response instanceof PaymentResponse pr) return pr.code();
         return null;
     }
 
     private String getHostedUrl(Object response) {
-        if (response instanceof CardPaymentResponse cpr) return cpr.getHostedUrl();
+        if (response instanceof CardPaymentResponse cpr) return cpr.hostedUrl();
         return null;
     }
 
     private String getCheckoutId(Object response) {
-        if (response instanceof CardPaymentResponse cpr) return cpr.getCheckoutId();
+        if (response instanceof CardPaymentResponse cpr) return cpr.checkoutId();
         return null;
     }
 
     private Object processPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-        if (isCardPayment(request.getPaymentMethod())) {
+        if (isCardPayment(request.paymentMethod())) {
             return processCardPayment(event, request, totalAmount);
         } else {
             return processMobileMoneyPayment(event, request, totalAmount);
@@ -126,53 +146,59 @@ public class TicketPurchaseService {
     }
 
     private CardPaymentResponse processCardPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-        CardPaymentRequest cardRequest = new CardPaymentRequest();
-        cardRequest.setAmount(totalAmount);
-        cardRequest.setEmail(request.getCustomerEmail());
-        cardRequest.setCurrency(Currency.USD);
+        var cardRequest = new CardPaymentRequest(
+                totalAmount,
+                request.customerEmail(),
+                Currency.USD
+        );
 
-        return cardPaymentService.processCardPayment(cardRequest, request.getPaymentMethod());
+        return cardPaymentService.processCardPayment(cardRequest, request.paymentMethod());
     }
 
     private PaymentResponse processMobileMoneyPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-        PaymentRequest paymentRequest = new PaymentRequest();
-        paymentRequest.setAmount(totalAmount);
-        paymentRequest.setEmail(request.getCustomerEmail());
-        paymentRequest.setMobileMoneyNumber(request.getMobileNumber());
-        paymentRequest.setPaymentMethod(request.getPaymentMethod());
-        paymentRequest.setCurrency(Currency.USD);
+        var paymentRequest = new PaymentRequest(
+                totalAmount,
+                request.customerEmail(),
+                request.mobileNumber(),
+                Currency.USD,
+                request.paymentMethod(),
+                "https://default-success-url.com",  // TODO: Get from config or request
+                "https://default-failure-url.com"   // TODO: Get from config or request
+        );
 
         return paymentService.processPayment(paymentRequest);
     }
 
-    // Modified to generate QR codes
+
     private List<TicketType> generateAndPersistTickets(Event event, TicketPurchaseRequest request) throws IOException {
-        List<TicketType> tickets = new ArrayList<>();
+        var tickets = new ArrayList<TicketType>();
 
-        request.getTickets().forEach(ticketRequest -> {
-            TicketType ticketType = event.getTicketTypes().stream()
-                    .filter(tt -> tt.getCategory() == ticketRequest.getCategory())
+        request.tickets().forEach(ticketRequest -> {
+            var ticketTemplate = event.getTicketTypes().stream()
+                    .filter(tt -> tt.getCategory() == ticketRequest.category())
+                    .filter(tt -> tt.getQrCodePath() == null)
                     .findFirst()
-                    .orElseThrow(() -> new IllegalArgumentException("Ticket type not available: " + ticketRequest.getCategory()));
+                    .orElseThrow(() -> new IllegalArgumentException("Ticket type not available: " + ticketRequest.category()));
 
-            for (int i = 0; i < ticketRequest.getQuantity(); i++) {
-                TicketType ticket = new TicketType();
-                ticket.setCategory(ticketType.getCategory());
-                ticket.setPrice(ticketType.getPrice());
+            for (int i = 0; i < ticketRequest.quantity(); i++) {
+                var ticket = new TicketType();
+                ticket.setCategory(ticketTemplate.getCategory());
+                ticket.setPrice(ticketTemplate.getPrice());
+                ticket.setCustomerEmail(request.customerEmail());
                 ticket.setEvent(event);
-                ticketTypeRepository.save(ticket); // Save first to generate ID
+                ticketTypeRepository.save(ticket);
 
                 try {
                     // Generate QR code after ticket has ID
-                    String qrData = String.format(
+                    var qrData = String.format(
                             "https://localhost:3000/verify-ticket?ticketId=%s&eventId=%d&type=%s",
-                            ticket.getId(),       // Ticket ID is now a String (alphanumeric)
-                            event.getId(),        // Event ID remains a Long
-                            ticket.getCategory()  // Enum value (e.g., "STANDARD")
+                            ticket.getId(),
+                            event.getId(),
+                            ticket.getCategory()
                     );
-                    String qrPath = qrCodeService.generateQRCode(qrData, 200, 200);
+                    var qrPath = qrCodeService.generateQRCode(qrData, 200, 200);
                     ticket.setQrCodePath(qrPath);
-                    ticketTypeRepository.save(ticket); // Update with QR code path
+                    ticketTypeRepository.save(ticket);
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to generate QR code", e);
                 }
@@ -190,44 +216,44 @@ public class TicketPurchaseService {
     }
 
     private boolean isPaymentSuccessful(Object paymentResponse) {
-        return (paymentResponse instanceof PaymentResponse pr && pr.getStatus() == Status.SUCCESS) ||
-                (paymentResponse instanceof CardPaymentResponse cpr && cpr.getResult().equalsIgnoreCase("success"));
+        return (paymentResponse instanceof PaymentResponse pr && pr.status() == Status.SUCCESS) ||
+                (paymentResponse instanceof CardPaymentResponse cpr && cpr.result().equalsIgnoreCase("success"));
     }
 
     private String getTransactionId(Object response) {
-        if (response instanceof PaymentResponse pr) return pr.getTransactionId();
-        if (response instanceof CardPaymentResponse cpr) return cpr.getTransactionId();
+        if (response instanceof PaymentResponse pr) return pr.transactionId();
+        if (response instanceof CardPaymentResponse cpr) return cpr.transactionId();
         return null;
     }
 
     private Double calculateTotalAmount(Event event, List<TicketTypeQuantity> tickets) {
         return tickets.stream()
                 .mapToDouble(tq -> {
-                    TicketType tt = event.getTicketTypes().stream()
-                            .filter(t -> t.getCategory() == tq.getCategory())
+                    var tt = event.getTicketTypes().stream()
+                            .filter(t -> t.getCategory() == tq.category())
                             .findFirst()
                             .orElseThrow(() -> new IllegalStateException("Ticket type not found"));
-                    return tt.getPrice() * tq.getQuantity();
+                    return tt.getPrice() * tq.quantity();
                 })
                 .sum();
     }
 
-    // Modified to show QR codes instead of ticket IDs
+
     private String generateTicketDetails(Event event,
                                          TicketPurchaseRequest request,
                                          List<TicketType> tickets,
                                          Object paymentResponse,
                                          double totalAmount) {
-        Map<TicketCategory, List<TicketType>> ticketsByCategory = tickets.stream()
+        var ticketsByCategory = tickets.stream()
                 .collect(Collectors.groupingBy(TicketType::getCategory));
 
-        StringBuilder ticketListHtml = new StringBuilder();
+        var ticketListHtml = new StringBuilder();
         ticketsByCategory.forEach((category, ticketList) -> {
-            int quantity = ticketList.size();
-            double price = ticketList.get(0).getPrice();
-            double subtotal = price * quantity;
+            var quantity = ticketList.size();
+            var price = ticketList.get(0).getPrice();
+            var subtotal = price * quantity;
 
-            String qrCodes = ticketList.stream()
+            var qrCodes = ticketList.stream()
                     .map(t -> String.format(
                             "<li style='margin-bottom: 15px;'>" +
                                     "<img src='cid:%s' style='width: 150px; height: 150px;'/><br>" +
@@ -292,295 +318,49 @@ public class TicketPurchaseService {
                     </html>""";
         }
     }
+
+    /**
+     * Get all tickets purchased by a user
+     * 
+     * @param customerEmail the email of the customer
+     * @return list of ticket responses with event details
+     */
+    public List<MyTicketResponse> getMyTickets(String customerEmail) {
+        var tickets = ticketTypeRepository.findByCustomerEmailOrderByCreatedDateDesc(customerEmail);
+        
+        return tickets.stream()
+                .map(this::mapToMyTicketResponse)
+                .toList();
+    }
+
+    /**
+     * Maps a TicketType entity to MyTicketResponse DTO
+     * Handles null event gracefully by extracting event details safely
+     * 
+     * @param ticket the ticket entity to map
+     * @return MyTicketResponse with ticket and event details
+     */
+    private MyTicketResponse mapToMyTicketResponse(TicketType ticket) {
+        Event event = ticket.getEvent();
+
+        Long eventId = event != null ? event.getId() : null;
+        String eventName = event != null ? event.getName() : null;
+        java.time.LocalDateTime eventDateTime = event != null ? event.getDateTime() : null;
+        String venue = event != null ? event.getVenue() : null;
+        String city = event != null ? event.getCity() : null;
+        
+        return new MyTicketResponse(
+                ticket.getId(),
+                ticket.getCategory(),
+                ticket.getPrice(),
+                ticket.isRedeemed(),
+                ticket.getQrCodePath(),
+                eventId,
+                eventName,
+                eventDateTime,
+                venue,
+                city,
+                ticket.getCreatedDate()
+        );
+    }
 }
-
-
-
-
-
-
-
-//package com.changamire.event;
-//
-//import com.changamire.enums.PaymentMethod;
-//import com.changamire.enums.TicketCategory;
-//import com.changamire.exceptions.EventNotFoundException;
-//import com.changamire.exceptions.ExternalServiceUnavailableException;
-//import com.changamire.exceptions.PaymentProcessingException;
-//import com.changamire.exceptions.TicketsSoldOutException;
-//import com.changamire.payment.*;
-//import com.changamire.enums.Currency;
-//import com.changamire.enums.Status;
-//import com.changamire.ticket.TicketType;
-//import jakarta.transaction.Transactional;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.stereotype.Service;
-//
-//import java.io.IOException;
-//import java.io.InputStream;
-//import java.nio.charset.StandardCharsets;
-//import java.time.format.DateTimeFormatter;
-//import java.util.*;
-//import java.util.stream.Collectors;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class TicketPurchaseService {
-//
-//    private final EventRepository eventRepository;
-//    private final PaymentService paymentService;
-//    private final CardPaymentService cardPaymentService;
-//    private final EmailService emailService;
-//    private final TicketTypeRepository ticketTypeRepository;
-//    private final QRCodeService qrCodeService;
-//
-//    @Transactional
-//    public TicketPurchaseResponse purchaseTicket(TicketPurchaseRequest request) {
-//        Event event = eventRepository.findById(request.getEventId())
-//                .orElseThrow(() -> new EventNotFoundException("Event not found"));
-//
-//        // Calculate total tickets requested
-//        int totalTickets = request.getTickets().stream()
-//                .mapToInt(TicketTypeQuantity::getQuantity)
-//                .sum();
-//
-//        // Validate capacity
-//        if (event.getCapacity() < totalTickets) {
-//            throw new TicketsSoldOutException("Not enough tickets available");
-//        }
-//
-//        try {
-//            // Calculate total amount
-//            double totalAmount = calculateTotalAmount(event, request.getTickets());
-//
-//            // Process payment with calculated amount
-//            Object paymentResponse = processPayment(event, request, totalAmount);
-//
-//            if (isPaymentSuccessful(paymentResponse)) {
-//                List<TicketType> purchasedTickets = generateAndPersistTickets(event, request);
-//                updateEventCapacity(event, totalTickets);
-//                String ticketDetails = generateTicketDetails(event, request, purchasedTickets, paymentResponse, totalAmount);
-//
-//                emailService.sendTicketConfirmation(
-//                        request.getCustomerEmail(),
-//                        "Your Ticket Confirmation - " + event.getName(),
-//                        ticketDetails
-//                );
-//
-//                return new TicketPurchaseResponse(
-//                        true,
-//                        "Purchase successful",
-//                        getTransactionId(paymentResponse),
-//                        ticketDetails,
-//                        getCode(paymentResponse),          // New field
-//                        request.getPaymentMethod(),        // From request
-//                        getHostedUrl(paymentResponse),     // New field
-//                        getCheckoutId(paymentResponse)     // New field
-//                );
-//            }
-//            // Update failure response with new fields
-//            return new TicketPurchaseResponse(
-//                    false,
-//                    "Payment failed",
-//                    null,
-//                    null,
-//                    null,
-//                    null,
-//                    null,
-//                    null
-//            );
-//
-//        } catch (PaymentProcessingException | ExternalServiceUnavailableException e) {
-//            return new TicketPurchaseResponse(
-//                    false,
-//                    e.getMessage(),
-//                    null,
-//                    null,
-//                    null,
-//                    null,
-//                    null,
-//                    null
-//            );
-//        }
-//    }
-//
-//
-//    // Helper methods to extract new fields from payment response
-//    private String getCode(Object response) {
-//        if (response instanceof PaymentResponse pr) return pr.getCode();
-//       // if (response instanceof CardPaymentResponse cpr) return cpr.getReference();
-//        return null;
-//    }
-//
-//    private String getHostedUrl(Object response) {
-//       // if (response instanceof PaymentResponse pr) return pr.getHostedUrl();
-//        if (response instanceof CardPaymentResponse cpr) return cpr.getHostedUrl();
-//        return null;
-//    }
-//
-//    private String getCheckoutId(Object response) {
-//      //  if (response instanceof PaymentResponse pr) return pr.getCheckoutId();
-//        if (response instanceof CardPaymentResponse cpr) return cpr.getCheckoutId();
-//        return null;
-//    }
-//
-//    private Object processPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-//        if (isCardPayment(request.getPaymentMethod())) {
-//            return processCardPayment(event, request, totalAmount);
-//        } else {
-//            return processMobileMoneyPayment(event, request, totalAmount);
-//        }
-//    }
-//
-//    private boolean isCardPayment(PaymentMethod method) {
-//        return method == PaymentMethod.ZIMSWITCH || method == PaymentMethod.INTERNATIONAL_CARD;
-//    }
-//
-//    private CardPaymentResponse processCardPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-//        CardPaymentRequest cardRequest = new CardPaymentRequest();
-//        cardRequest.setAmount(totalAmount);
-//        cardRequest.setEmail(request.getCustomerEmail());
-//        cardRequest.setCurrency(Currency.USD);
-//
-//        return cardPaymentService.processCardPayment(cardRequest, request.getPaymentMethod());
-//    }
-//
-//    private PaymentResponse processMobileMoneyPayment(Event event, TicketPurchaseRequest request, double totalAmount) {
-//        PaymentRequest paymentRequest = new PaymentRequest();
-//        paymentRequest.setAmount(totalAmount);
-//        paymentRequest.setEmail(request.getCustomerEmail());
-//        paymentRequest.setMobileMoneyNumber(request.getMobileNumber());
-//        paymentRequest.setPaymentMethod(request.getPaymentMethod());
-//        paymentRequest.setCurrency(Currency.USD);
-//
-//        return paymentService.processPayment(paymentRequest);
-//    }
-//
-//    private List<TicketType> generateAndPersistTickets(Event event, TicketPurchaseRequest request) {
-//        List<TicketType> tickets = new ArrayList<>();
-//
-//        request.getTickets().forEach(ticketRequest -> {
-//            TicketType ticketType = event.getTicketTypes().stream()
-//                    .filter(tt -> tt.getCategory() == ticketRequest.getCategory())
-//                    .findFirst()
-//                    .orElseThrow(() -> new IllegalArgumentException("Ticket type not available: " + ticketRequest.getCategory()));
-//
-//            for (int i = 0; i < ticketRequest.getQuantity(); i++) {
-//                TicketType ticket = new TicketType();
-//                ticket.setCategory(ticketType.getCategory());
-//                ticket.setPrice(ticketType.getPrice());
-//                ticket.setEvent(event);
-//                ticketTypeRepository.save(ticket);
-//                tickets.add(ticket);
-//            }
-//        });
-//
-//        return tickets;
-//    }
-//
-//    private void updateEventCapacity(Event event, int totalTickets) {
-//        event.setCapacity(event.getCapacity() - totalTickets);
-//        eventRepository.save(event);
-//    }
-//
-//    private boolean isPaymentSuccessful(Object paymentResponse) {
-//        return (paymentResponse instanceof PaymentResponse pr && pr.getStatus() == Status.SUCCESS) ||
-//                (paymentResponse instanceof CardPaymentResponse cpr && cpr.getResult().equalsIgnoreCase("success"));
-//    }
-//
-//    private String getTransactionId(Object response) {
-//        if (response instanceof PaymentResponse pr) return pr.getTransactionId();
-//        if (response instanceof CardPaymentResponse cpr) return cpr.getTransactionId();
-//        return null;
-//    }
-//
-//    private Double calculateTotalAmount(Event event, List<TicketTypeQuantity> tickets) {
-//        return tickets.stream()
-//                .mapToDouble(tq -> {
-//                    TicketType tt = event.getTicketTypes().stream()
-//                            .filter(t -> t.getCategory() == tq.getCategory())
-//                            .findFirst()
-//                            .orElseThrow(() -> new IllegalStateException("Ticket type not found"));
-//                    return tt.getPrice() * tq.getQuantity();
-//                })
-//                .sum();
-//    }
-//
-//    private String generateTicketDetails(Event event,
-//                                         TicketPurchaseRequest request,
-//                                         List<TicketType> tickets,
-//                                         Object paymentResponse,
-//                                         double totalAmount) {
-//        // Group tickets by category
-//        Map<TicketCategory, List<TicketType>> ticketsByCategory = tickets.stream()
-//                .collect(Collectors.groupingBy(TicketType::getCategory));
-//
-//        // Build ticket list HTML
-//        StringBuilder ticketListHtml = new StringBuilder();
-//        ticketsByCategory.forEach((category, ticketList) -> {
-//            int quantity = ticketList.size();
-//            double price = ticketList.get(0).getPrice();
-//            double subtotal = price * quantity;
-//
-//            String ticketIds = ticketList.stream()
-//                    .map(t -> String.format("<li style='margin-bottom: 5px;'>🎫 Ticket ID: <strong>%s</strong></li>", t.getId()))
-//                    .collect(Collectors.joining());
-//
-//            ticketListHtml.append(String.format(
-//                    "<div style='margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;'>" +
-//                            "<h4 style='color: #2c3e50; margin-top: 0;'>%s Tickets</h4>" +
-//                            "<p>Quantity: %d</p>" +
-//                            "<p>Price per ticket: $%.2f</p>" +
-//                            "<p>Subtotal: $%.2f</p>" +
-//                            "<ul style='list-style: none; padding-left: 0; margin-top: 10px;'>%s</ul>" +
-//                            "</div>",
-//                    category, quantity, price, subtotal, ticketIds
-//            ));
-//        });
-//
-//        return String.format(
-//                loadEmailTemplate(),
-//                event.getName(),
-//                event.getDateTime().format(DateTimeFormatter.ofPattern("EEE, MMM dd yyyy hh:mm a")),
-//                event.getVenue(),
-//                event.getCity(),
-//                tickets.size(),  // Total tickets
-//                totalAmount,    // Total paid
-//                ticketListHtml.toString()
-//        );
-//    }
-//
-//    private String loadEmailTemplate() {
-//        try (InputStream is = getClass().getClassLoader().getResourceAsStream("app/templates/email/ticket-confirmation.html")) {
-//            if (is != null) {
-//                return new String(is.readAllBytes(), StandardCharsets.UTF_8);
-//            } else {
-//                throw new IOException("Template not found in resources");
-//            }
-//        } catch (IOException e) {
-//            // Fallback template
-//            return """
-//                    <!DOCTYPE html>
-//                    <html>
-//                    <body>
-//                        <h2 style="color: #2c3e50;">🎟️ Your Ticket Confirmation </h2>
-//                        <p>Thank you for purchasing tickets for <strong>%s</strong>!</p>
-//
-//                        <div style="border: 1px solid #e0e0e0; padding: 20px; margin: 20px 0; border-radius: 8px;">
-//                            <h3 style="color: #2c3e50; margin-top: 0;">Event Overview</h3>
-//                            <p>📅 Date & Time: %s</p>
-//                            <p>📍 Venue: %s</p>
-//                            <p>🏙️ City: %s</p>
-//                            <p>🔢 Total Tickets: %d</p>
-//                            <p>💵 Total Paid: $%.2f</p>
-//
-//                            <h3 style="color: #2c3e50;">Ticket Breakdown</h3>
-//                            %s
-//                        </div>
-//
-//                        <p style="color: #7f8c8d; font-size: 0.9em;">Have a great experience at the event!</p>
-//                    </body>
-//                    </html>""";
-//        }
-//    }
-//}

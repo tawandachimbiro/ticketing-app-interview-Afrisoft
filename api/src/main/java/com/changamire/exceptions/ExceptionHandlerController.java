@@ -6,6 +6,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * Global Exception Handler Controller
+ * <p>
+ * This controller provides centralized exception handling for the entire application.
+ * It catches and handles various custom exceptions, transforming them into appropriate
+ * HTTP responses with error details.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @ControllerAdvice(annotations = {RestController.class, Controller.class})
 public class ExceptionHandlerController {
 
@@ -37,7 +48,7 @@ public class ExceptionHandlerController {
         return Error.of(400, e.getMessage());
     }
 
-    //EmailSendingException
+
 
     @ExceptionHandler(EmailSendingException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
@@ -47,13 +58,13 @@ public class ExceptionHandlerController {
         return Error.of(400, e.getMessage());
     }
 
-    //EventNotFoundException
+
 
     @ExceptionHandler(EventNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody
     Error EventNotFoundException(EventNotFoundException e) {
-        LOGGER.info("Event Not Found Exception", e.getMessage());
+        LOGGER.info("Event Not Found Exception : {}", e.getMessage());
         return Error.of(400, e.getMessage());
     }
 
@@ -63,7 +74,7 @@ public class ExceptionHandlerController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody
     Error ExternalServiceUnavailableException(ExternalServiceUnavailableException e) {
-        LOGGER.info("External Service Unavailable Error", e.getMessage());
+        LOGGER.info("External Service Unavailable Error : {}", e.getMessage());
         return Error.of(400, e.getMessage());
     }
 }

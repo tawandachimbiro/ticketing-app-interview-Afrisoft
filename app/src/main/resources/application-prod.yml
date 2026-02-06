@@ -1,0 +1,111 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mariadb://localhost:3306/ticketing_app}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:Amill2017}
+    driver-class-name: org.mariadb.jdbc.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.MariaDBDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=10m
+    cache-names:
+      - events-all
+      - event-by-id
+      - events-filtered
+
+  mail:
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME:chimbirotawanda@gmail.com}
+    password: ${SPRING_MAIL_PASSWORD}
+    protocol: smtp
+    test-connection: false
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 10000
+          timeout: 10000
+          writetimeout: 10000
+          ssl:
+            trust: ${SPRING_MAIL_HOST:smtp.gmail.com}
+            protocols: TLSv1.2
+        debug: false
+        transport:
+          protocol: smtp
+
+server:
+  port: ${SERVER_PORT:8099}
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+  error:
+    include-message: always
+    include-binding-errors: always
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:sxwj8RC6QZwmtwpHdHQ6nebcWqunsmY1H8q6sO02lNTfsuQOLeHcJmGir/A5Ll3SYon9YS6zfSOpBDcIyBQy1w==}
+  expiration: ${JWT_EXPIRATION:900000}        # 15 minutes
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7 days
+
+
+# Payment Configuration
+payment:
+  test-mode: ${PAYMENT_TEST_MODE:true}
+
+motapa:
+  api:
+    base-url: ${MOTAPA_API_BASE_URL:https://api.motapa.africa/v1}
+    secret-key: ${MOTAPA_API_SECRET_KEY:pk_test_DHYQjCldE5EVqib2pHnvLJXhbNC1rBZl}
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.changamire: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+    com.zaxxer.hikari: WARN
+    org.apache.catalina: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    mail:
+      enabled: false

@@ -9,7 +9,18 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
 import java.util.function.Predicate;
 
-public class EventSpecifications {
+/**
+ * Event Specifications
+ * <p>
+ * This utility class provides JPA Specifications for dynamic event filtering
+ * and querying. Used by EventRepository to build complex search criteria
+ * for event searches by name, city, type, dates, and ticket prices.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
+public class EventSpecifications  {
 
     public static Specification<Event> hasName(String name) {
         return (root, query, criteriaBuilder) -> 
@@ -57,6 +68,14 @@ public class EventSpecifications {
 
             return criteriaBuilder.and((Expression<Boolean>) minPredicate, (Expression<Boolean>) maxPredicate);
         };
+    }
+
+    /**
+     * Exclude soft-deleted events.
+     */
+    public static Specification<Event> notDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.isFalse(root.get("deleted"));
     }
 
 

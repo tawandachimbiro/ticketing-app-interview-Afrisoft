@@ -2,6 +2,16 @@ package com.changamire.exceptions;
 
 import lombok.Data;
 
+/**
+ * Error Response Model
+ * <p>
+ * This class represents a standardized error response containing HTTP status code
+ * and error message for API error handling.
+ * 
+ * @author Archibold Chimbiro
+ * @version 1.0.0
+ * @since 2026-02-04
+ */
 @Data
 public class Error {
 
