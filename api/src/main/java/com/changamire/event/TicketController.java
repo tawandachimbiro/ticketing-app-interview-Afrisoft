@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,6 +25,7 @@ import java.util.List;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/tickets")
 @RequiredArgsConstructor
@@ -31,14 +33,12 @@ import java.util.List;
 public class TicketController {
 
     private final TicketPurchaseService ticketPurchaseService;
-    private final TicketTypeRepository ticketTypeRepository;
     private final com.changamire.user.UserRepository userRepository;
 
     @Operation(summary = "Purchase tickets", description = "Purchase event tickets with payment processing and QR code generation")
     @PostMapping("/purchase")
-    public ResponseEntity<TicketPurchaseResponse> purchaseTicket(
-            @Valid @RequestBody TicketPurchaseRequest request
-    ) {
+    public ResponseEntity<TicketPurchaseResponse> purchaseTicket(@Valid @RequestBody TicketPurchaseRequest request) {
+        log.info("Request to purchase tickets: {}", request.toString());
         var response = ticketPurchaseService.purchaseTicket(request);
         return ResponseEntity.status(response.success() ? 200 : 400).body(response);
     }
@@ -47,32 +47,9 @@ public class TicketController {
     @GetMapping("/my")
     public ResponseEntity<List<MyTicketResponse>> getMyTickets(Authentication authentication) {
         String username = authentication.getName();
+        log.info("Request to get tickets for user: {}", username);
         var user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
-
-        String email = user.getEmail();
-
-        var tickets = ticketTypeRepository.findByCustomerEmailOrderByCreatedDateDesc(email);
-
-        var response = tickets.stream()
-                .map(ticket -> {
-                    var event = ticket.getEvent();
-                    return new MyTicketResponse(
-                            ticket.getId(),
-                            ticket.getCategory(),
-                            ticket.getPrice(),
-                            ticket.isRedeemed(),
-                            ticket.getQrCodePath(),
-                            event != null ? event.getId() : null,
-                            event != null ? event.getName() : null,
-                            event != null ? event.getDateTime() : null,
-                            event != null ? event.getVenue() : null,
-                            event != null ? event.getCity() : null,
-                            ticket.getCreatedDate()
-                    );
-                })
-                .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ticketPurchaseService.getMyTickets(user.getEmail()));
     }
 }

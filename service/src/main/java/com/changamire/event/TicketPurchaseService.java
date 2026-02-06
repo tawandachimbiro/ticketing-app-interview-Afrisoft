@@ -20,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import com.changamire.event.Event;
 
 /**
  * Ticket Purchase Service
@@ -315,6 +316,52 @@ public class TicketPurchaseService {
                     </body>
                     </html>""";
         }
+    }
+
+    /**
+     * Get all tickets purchased by a user
+     * 
+     * @param customerEmail the email of the customer
+     * @return list of ticket responses with event details
+     */
+    public List<MyTicketResponse> getMyTickets(String customerEmail) {
+        var tickets = ticketTypeRepository.findByCustomerEmailOrderByCreatedDateDesc(customerEmail);
+        
+        return tickets.stream()
+                .map(this::mapToMyTicketResponse)
+                .toList();
+    }
+
+    /**
+     * Maps a TicketType entity to MyTicketResponse DTO
+     * Handles null event gracefully by extracting event details safely
+     * 
+     * @param ticket the ticket entity to map
+     * @return MyTicketResponse with ticket and event details
+     */
+    private MyTicketResponse mapToMyTicketResponse(TicketType ticket) {
+        Event event = ticket.getEvent();
+        
+        // Extract event details safely (handle null event)
+        Long eventId = event != null ? event.getId() : null;
+        String eventName = event != null ? event.getName() : null;
+        java.time.LocalDateTime eventDateTime = event != null ? event.getDateTime() : null;
+        String venue = event != null ? event.getVenue() : null;
+        String city = event != null ? event.getCity() : null;
+        
+        return new MyTicketResponse(
+                ticket.getId(),
+                ticket.getCategory(),
+                ticket.getPrice(),
+                ticket.isRedeemed(),
+                ticket.getQrCodePath(),
+                eventId,
+                eventName,
+                eventDateTime,
+                venue,
+                city,
+                ticket.getCreatedDate()
+        );
     }
 }
 

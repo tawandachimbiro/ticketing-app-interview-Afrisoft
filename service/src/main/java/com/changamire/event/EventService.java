@@ -89,33 +89,21 @@ public class EventService {
      * Cached with composite key based on all filter parameters
      * Allows fast retrieval of frequently used filter combinations
      * 
-     * @param name event name filter
-     * @param city city filter
-     * @param type event type filter
-     * @param ispromotion promotion status filter
-     * @param startDate start date range filter
-     * @param endDate end date range filter
-     * @param minPrice minimum price filter
-     * @param maxPrice maximum price filter
-     * @param page page number
-     * @param size page size
+     * @param filterRequest event filter request containing all filter criteria
      * @return filtered and paginated list of events
      */
     @Cacheable(value = "events-filtered", 
-               key = "#name + '-' + #city + '-' + #type + '-' + #ispromotion + '-' + #startDate + '-' + #endDate + '-' + #minPrice + '-' + #maxPrice + '-' + #page + '-' + #size")
-    public Page<Event> getEventsByFilters(String name, String city, String type, String ispromotion,
-                                          LocalDateTime startDate, LocalDateTime endDate,
-                                          Double minPrice, Double maxPrice,
-                                          int page, int size) {
-        var pageable = PageRequest.of(page, size);
+               key = "#filterRequest.name + '-' + #filterRequest.city + '-' + #filterRequest.type + '-' + #filterRequest.ispromotion + '-' + #filterRequest.startDate + '-' + #filterRequest.endDate + '-' + #filterRequest.minPrice + '-' + #filterRequest.maxPrice + '-' + #filterRequest.page + '-' + #filterRequest.size")
+    public Page<Event> getEventsByFilters(EventFilterRequest filterRequest) {
+        var pageable = PageRequest.of(filterRequest.getPage(), filterRequest.getSize());
         
         var spec = Specification.where(EventSpecifications.notDeleted())
-            .and(EventSpecifications.hasName(name))
-            .and(EventSpecifications.hasCity(city))
-            .and(EventSpecifications.hasType(type))
-            .and(EventSpecifications.hasPromotion(ispromotion))
-            .and(EventSpecifications.betweenDates(startDate, endDate))
-            .and(EventSpecifications.hasTicketPriceBetween(minPrice, maxPrice));
+            .and(EventSpecifications.hasName(filterRequest.getName()))
+            .and(EventSpecifications.hasCity(filterRequest.getCity()))
+            .and(EventSpecifications.hasType(filterRequest.getType()))
+            .and(EventSpecifications.hasPromotion(filterRequest.getIspromotion()))
+            .and(EventSpecifications.betweenDates(filterRequest.getStartDate(), filterRequest.getEndDate()))
+            .and(EventSpecifications.hasTicketPriceBetween(filterRequest.getMinPrice(), filterRequest.getMaxPrice()));
 
         var eventsPage = eventRepository.findAll(spec, pageable);
         

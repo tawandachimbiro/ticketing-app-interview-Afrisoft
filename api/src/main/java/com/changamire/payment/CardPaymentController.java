@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,18 +20,20 @@ import org.springframework.web.bind.annotation.*;
  * @version 1.0.0
  * @since 2026-02-04
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/card-payments")
 @RequiredArgsConstructor
 @Tag(name = "Card Payments", description = "Handle credit/debit card transactions")
 public class CardPaymentController {
+    
     private final CardPaymentService cardPaymentService;
 
     @Operation(summary = "Process card payment", description = "Process a credit or debit card payment transaction using specified payment method")
     @PostMapping("/{paymentMethod}")
-    public ResponseEntity<CardPaymentResponse> processCardPayment(
-            @PathVariable PaymentMethod paymentMethod,
-            @Valid @RequestBody CardPaymentRequest request) {
+    public ResponseEntity<CardPaymentResponse> processCardPayment(@PathVariable PaymentMethod paymentMethod,
+                                                                  @Valid @RequestBody CardPaymentRequest request) {
+        log.info("Request to process card payment with method {}: {}", paymentMethod, request.toString());
         return ResponseEntity.ok(cardPaymentService.processCardPayment(request, paymentMethod));
     }
 }
