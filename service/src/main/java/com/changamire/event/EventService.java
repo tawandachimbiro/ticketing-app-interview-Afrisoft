@@ -3,6 +3,9 @@ package com.changamire.event;
 import com.changamire.exceptions.EventNotFoundException;
 import com.changamire.ticket.TicketType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +21,10 @@ import java.util.ArrayList;
  * updating, retrieving, and filtering events. It provides comprehensive event
  * search capabilities with multiple filter criteria.
  * 
+ * Caching Strategy:
+ * - Read operations are cached with appropriate TTLs to reduce database load
+ * - Write operations (create/update/delete) evict all event-related caches to ensure data consistency
+ * 
  * @author Archibold Chimbiro
  * @version 1.0.0
  * @since 2026-02-04
@@ -28,6 +35,16 @@ public class EventService {
     @Autowired
     private EventRepository eventRepository;
 
+    /**
+     * Get all events with pagination
+     * Cached to improve performance for frequently accessed event listings
+     * Cache key includes page and size to cache each page separately
+     * 
+     * @param page page number (0-indexed)
+     * @param size page size
+     * @return paginated list of events
+     */
+    @Cacheable(value = "events-all", key = "#page + '-' + #size")
     public Page<Event> getAllEvents(int page, int size) {
         var pageable = PageRequest.of(page, size);
         // Only return events that are not soft-deleted
@@ -44,6 +61,16 @@ public class EventService {
         return eventsPage;
     }
 
+    /**
+     * Get event by ID
+     * Cached individually as event details are frequently accessed
+     * Cache key is the event ID
+     * 
+     * @param id event ID
+     * @return event details
+     * @throws EventNotFoundException if event not found
+     */
+    @Cacheable(value = "event-by-id", key = "#id")
     public Event getEventById(Long id) {
         var event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
@@ -57,6 +84,25 @@ public class EventService {
         return event;
     }
 
+    /**
+     * Get events by filters with pagination
+     * Cached with composite key based on all filter parameters
+     * Allows fast retrieval of frequently used filter combinations
+     * 
+     * @param name event name filter
+     * @param city city filter
+     * @param type event type filter
+     * @param ispromotion promotion status filter
+     * @param startDate start date range filter
+     * @param endDate end date range filter
+     * @param minPrice minimum price filter
+     * @param maxPrice maximum price filter
+     * @param page page number
+     * @param size page size
+     * @return filtered and paginated list of events
+     */
+    @Cacheable(value = "events-filtered", 
+               key = "#name + '-' + #city + '-' + #type + '-' + #ispromotion + '-' + #startDate + '-' + #endDate + '-' + #minPrice + '-' + #maxPrice + '-' + #page + '-' + #size")
     public Page<Event> getEventsByFilters(String name, String city, String type, String ispromotion,
                                           LocalDateTime startDate, LocalDateTime endDate,
                                           Double minPrice, Double maxPrice,
@@ -84,6 +130,17 @@ public class EventService {
         return eventsPage;
     }
 
+    /**
+     * Create new event
+     * Evicts all event-related caches after creating to ensure fresh data is fetched
+     * 
+     * @param request event creation request
+     * @return event response with created event details
+     */
+    @Caching(evict = {
+        @CacheEvict(value = "events-all", allEntries = true),
+        @CacheEvict(value = "events-filtered", allEntries = true)
+    })
     public EventResponse createEvent(EventCreateRequest request) {
         // Create event without ticket types first
         var event = Event.builder()
@@ -138,6 +195,20 @@ public class EventService {
                 .build();
     }
 
+    /**
+     * Update existing event
+     * Evicts all event-related caches including the specific event's cache
+     * 
+     * @param id event ID to update
+     * @param request event update request
+     * @return event response with updated event details
+     * @throws EventNotFoundException if event not found
+     */
+    @Caching(evict = {
+        @CacheEvict(value = "events-all", allEntries = true),
+        @CacheEvict(value = "events-filtered", allEntries = true),
+        @CacheEvict(value = "event-by-id", key = "#id")
+    })
     public EventResponse updateEvent(Long id, EventUpdateRequest request) {
         Event event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));
@@ -222,7 +293,16 @@ public class EventService {
 
     /**
      * Soft delete an event by marking it as deleted instead of removing it from the database.
+     * Evicts all event-related caches to ensure deleted event no longer appears
+     * 
+     * @param id event ID to delete
+     * @throws EventNotFoundException if event not found
      */
+    @Caching(evict = {
+        @CacheEvict(value = "events-all", allEntries = true),
+        @CacheEvict(value = "events-filtered", allEntries = true),
+        @CacheEvict(value = "event-by-id", key = "#id")
+    })
     public void softDeleteEvent(Long id) {
         var event = eventRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new EventNotFoundException("Event not found with id: " + id));

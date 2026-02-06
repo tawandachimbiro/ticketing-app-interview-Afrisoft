@@ -2,6 +2,7 @@ package com.changamire;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -16,12 +17,15 @@ import java.util.concurrent.Executor;
  * <p>
  * Async support is enabled to offload non-critical operations like email sending
  * to background threads, so the main HTTP request can return quickly.
+ * <p>
+ * Caching is enabled to improve performance for frequently accessed data like event listings.
  * 
  * @author Archibold Chimbiro
  * @version 1.0.0
  * @since 2026-02-04
  */
 @EnableAsync
+@EnableCaching
 @SpringBootApplication
 public class ECommerceAppCustomerApplication {
 

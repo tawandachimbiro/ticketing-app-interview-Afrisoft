@@ -11,6 +11,16 @@ spring:
       show-sql: true
       format_sql: true
 
+  # Cache Configuration
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1500,expireAfterWrite=15m  # Longer TTL for production
+    cache-names:
+      - events-all
+      - event-by-id
+      - events-filtered
+
   mail:
     host: smtp.gmail.com
     port: 587

@@ -1,7 +1,7 @@
 package com.changamire.payment;
 
 
-import  com.changamire.RandomTransactionGenerator;
+import com.changamire.RandomTransactionGenerator;
 import com.changamire.enums.Currency;
 import com.changamire.enums.PaymentMethod;
 import com.changamire.enums.Status;
@@ -9,8 +9,6 @@ import com.changamire.exceptions.ExternalServiceUnavailableException;
 import com.changamire.exceptions.RecordNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.NestedExceptionUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,7 +19,6 @@ import org.springframework.web.client.RestTemplate;
 import java.math.BigDecimal;
 import java.net.UnknownHostException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /**
