@@ -35,10 +35,10 @@ public class SwaggerConfigurations {
         License mitLicense = new License().name("License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
-                .title("Afrisoft (interview) Ticketing system")
+                .title("Ticketing system")
                 .version("1.0")
                 .contact(contact)
-                .description("Afrisoft (interview) Ticketing system with JWT Authentication").termsOfService("https://www.chimbiro.co.zw/#/")
+                .description("Ticketing system with JWT Authentication").termsOfService("https://www.chimbiro.co.zw/#/")
                 .license(mitLicense);
 
 

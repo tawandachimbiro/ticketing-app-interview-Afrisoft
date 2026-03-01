@@ -7,7 +7,7 @@ This guide explains how to run the ticketing application using Docker.
 - Docker Desktop installed and running
 - Docker Compose installed (comes with Docker Desktop)
 - At least 4GB of available RAM
-- Ports 3306, 8099, and 8080 available
+- Ports 3306, 8099, 8080, 9090, and 3000 available (9090 and 3000 for Prometheus and Grafana)
 
 ## Project Structure
 
@@ -15,6 +15,13 @@ This guide explains how to run the ticketing application using Docker.
 e-commerce-app-customer/
 ├── Dockerfile              # Multi-stage Docker build
 ├── docker-compose.yml      # Container orchestration
+├── app/src/main/resources/
+│   ├── prometheus.yml      # Prometheus scrape config for the app
+│   ├── application-*.yml   # Spring config (dev, staging, prod)
+│   └── ...
+├── grafana/
+│   └── provisioning/
+│       └── datasources/   # Grafana datasource (Prometheus) auto-provisioned
 ├── .dockerignore          # Files to exclude from build
 ├── .env.example           # Environment variables template
 ├── init.sql              # Database initialization
@@ -52,6 +59,8 @@ docker-compose ps
 - **API Documentation**: http://localhost:8099/swagger-ui.html
 - **Health Check**: http://localhost:8099/actuator/health
 - **phpMyAdmin**: http://localhost:8080
+- **Prometheus** (metrics): http://localhost:9090
+- **Grafana** (dashboards): http://localhost:3000 (default login: admin / admin)
 
 ## Services
 
@@ -72,6 +81,18 @@ docker-compose ps
 - **Container**: `ticketing_phpmyadmin`
 - **Port**: 8080
 - **Purpose**: Database management UI
+
+### Prometheus (Monitoring)
+- **Container**: `ticketing_prometheus`
+- **Port**: 9090 (override with `PROMETHEUS_PORT` in `.env`)
+- **Purpose**: Scrapes `/actuator/prometheus` from the app every 15s; stores metrics for querying (PromQL) and Grafana.
+- **Config**: `app/src/main/resources/prometheus.yml`.
+
+### Grafana (Monitoring)
+- **Container**: `ticketing_grafana`
+- **Port**: 3000 (override with `GRAFANA_PORT` in `.env`)
+- **Purpose**: Dashboards and visualizations; Prometheus is pre-configured as the default data source.
+- **Login**: Set via `GRAFANA_ADMIN_USER` and `GRAFANA_ADMIN_PASSWORD` (default: admin / admin). Change in production.
 
 ## Docker Commands
 
@@ -151,6 +172,10 @@ Key environment variables (see `.env.example` for full list):
 | `JWT_SECRET` | JWT signing secret | - |
 | `MAIL_USERNAME` | Email username | - |
 | `MAIL_PASSWORD` | Email app password | - |
+| `PROMETHEUS_PORT` | Prometheus UI port | 9090 |
+| `GRAFANA_PORT` | Grafana UI port | 3000 |
+| `GRAFANA_ADMIN_USER` | Grafana admin username | admin |
+| `GRAFANA_ADMIN_PASSWORD` | Grafana admin password | admin |
 
 ## Production Deployment
 
@@ -207,6 +232,14 @@ SPRING_PROFILE=prod docker-compose up -d
 ```
 
 ## Monitoring
+
+### Prometheus and Grafana
+
+The stack includes Prometheus and Grafana for metrics and dashboards:
+
+1. **Prometheus** (http://localhost:9090): Check **Status → Targets** to confirm the `ticketing-app` target is UP. Use the **Graph** tab to run PromQL queries (e.g. `jvm_memory_used_bytes`, `http_server_requests_seconds_count`).
+2. **Grafana** (http://localhost:3000): Log in with the admin credentials from `.env`. The **Prometheus** data source is already provisioned. You can create dashboards or import existing ones (e.g. “JVM (Micrometer)” or “Spring Boot 2.1 Statistics” from Grafana.com) to visualize JVM, HTTP, and Hikari metrics from the app.
+3. **Metrics endpoint**: The app exposes Prometheus-format metrics at http://localhost:8099/actuator/prometheus (no auth; intended for scrape by Prometheus on the Docker network).
 
 ### Health Checks
 

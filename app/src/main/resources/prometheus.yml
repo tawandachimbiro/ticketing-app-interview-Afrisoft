@@ -1,0 +1,15 @@
+# Prometheus configuration for ticketing app monitoring
+# Scrapes Spring Boot Actuator Prometheus endpoint from the app container.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'ticketing-app'
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ['ticketing-app:8099']
+        labels:
+          application: 'e-commerce-app-customer'
+          env: 'prod'

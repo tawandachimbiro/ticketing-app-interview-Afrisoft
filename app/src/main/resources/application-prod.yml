@@ -10,6 +10,8 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+  application:
+    name: ticketing-app
 
   jpa:
     hibernate:
@@ -96,12 +98,12 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
-# Actuator Configuration
+# Actuator / Monitoring Configuration
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info,metrics,prometheus
       base-path: /actuator
   endpoint:
     health:
@@ -109,3 +111,8 @@ management:
   health:
     mail:
       enabled: false
+  metrics:
+    tags:
+      application: ticketing-app
+
+
